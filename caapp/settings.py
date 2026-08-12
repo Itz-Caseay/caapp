@@ -168,3 +168,9 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Allowed file types for voice
+VOICE_FILE_TYPES = ['audio/webm', 'audio/mp3', 'audio/wav']
+MAX_VOICE_DURATION = 60  # seconds
+MAX_VOICE_FILE_SIZE = 5 * 1024 * 1024  # 5MB
