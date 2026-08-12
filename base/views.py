@@ -761,6 +761,15 @@ from django.db.models import Q
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from .models import *
+import json
+import base64
+import os
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.conf import settings
+import uuid
 
 # ============================================
 # AUTHENTICATION VIEWS
@@ -1572,3 +1581,84 @@ def update_status_view(request):
     profile.save()
     
     return JsonResponse({'success': True})
+
+@login_required(login_url='login')
+@require_POST
+def send_voice_message_ajax(request):
+    """AJAX endpoint for sending voice messages"""
+    receiver_id = request.POST.get('receiver_id')
+    group_id = request.POST.get('group_id')
+    voice_data = request.POST.get('voice_data')  # base64 encoded audio
+    voice_duration = request.POST.get('voice_duration')
+    
+    if not voice_data:
+        return JsonResponse({'error': 'Voice data is required'}, status=400)
+    
+    # Decode base64 audio
+    try:
+        # Remove data URL prefix if present
+        if 'base64,' in voice_data:
+            voice_data = voice_data.split('base64,')[1]
+        
+        audio_bytes = base64.b64decode(voice_data)
+        audio_file = ContentFile(audio_bytes)
+        
+        # Generate unique filename
+        filename = f"voice_{uuid.uuid4().hex[:8]}.webm"
+        
+        # Save file
+        file_path = default_storage.save(f'voice_messages/{filename}', audio_file)
+        file_url = default_storage.url(file_path)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+    sender = request.user
+    
+    if receiver_id:
+        # Direct message
+        receiver = get_object_or_404(User, id=receiver_id)
+        message = Message.objects.create(
+            sender=sender,
+            receiver=receiver,
+            message_type='voice',
+            voice_file=file_path,
+            voice_duration=int(voice_duration) if voice_duration else None
+        )
+        
+        return JsonResponse({
+            'id': message.id,
+            'type': 'voice',
+            'duration': message.voice_duration,
+            'timestamp': message.timestamp.strftime('%I:%M %p'),
+            'sender': sender.fullname or sender.username,
+            'sender_id': sender.id,
+            'file_url': file_url,
+        })
+    
+    elif group_id:
+        # Group message
+        group = get_object_or_404(Group, id=group_id)
+        if not group.members.filter(id=sender.id).exists():
+            return JsonResponse({'error': 'Not a member of this group'}, status=403)
+        
+        message = Message.objects.create(
+            sender=sender,
+            group=group,
+            message_type='voice',
+            voice_file=file_path,
+            voice_duration=int(voice_duration) if voice_duration else None
+        )
+        
+        return JsonResponse({
+            'id': message.id,
+            'type': 'voice',
+            'duration': message.voice_duration,
+            'timestamp': message.timestamp.strftime('%I:%M %p'),
+            'sender': sender.fullname or sender.username,
+            'sender_id': sender.id,
+            'file_url': file_url,
+            'group_name': group.name
+        })
+    
+    return JsonResponse({'error': 'Invalid recipient'}, status=400)

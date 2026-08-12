@@ -28,36 +28,37 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s Profile"
-    
 class Message(models.Model):
-    sender = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='sent_messages'
+    """Chat message model with voice support"""
+    MESSAGE_TYPES = (
+        ('text', 'Text'),
+        ('voice', 'Voice'),
+        ('image', 'Image'),
+        ('file', 'File'),
     )
-    receiver = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True, 
-        related_name='received_messages'
-    )
-    group = models.ForeignKey(
-        'Group', 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True, 
-        related_name='messages'
-    )
-    content = models.TextField()
+    
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='received_messages')
+    group = models.ForeignKey('Group', on_delete=models.CASCADE, null=True, blank=True, related_name='messages')
+    content = models.TextField(blank=True, null=True)
+    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPES, default='text')
+    voice_file = models.FileField(upload_to='voice_messages/', null=True, blank=True)
+    voice_duration = models.IntegerField(null=True, blank=True, help_text="Duration in seconds")
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['sender', 'receiver', 'timestamp']),
+            models.Index(fields=['group', 'timestamp']),
+            models.Index(fields=['receiver', 'is_read']),
+        ]
 
     def __str__(self):
+        if self.message_type == 'voice':
+            return f"{self.sender.username}: 🎤 Voice message ({self.voice_duration}s)"
         return f"{self.sender.username}: {self.content[:30]}"
 
 class Group(models.Model):
