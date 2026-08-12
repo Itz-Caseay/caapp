@@ -1024,7 +1024,7 @@ def send_message_ajax(request):
 
 @login_required(login_url='login')
 def get_new_messages(request):
-    """Poll for new messages - FIXED to handle both direct and group messages"""
+    """Poll for new messages including voice messages"""
     user = request.user
     last_message_id = request.GET.get('last_id', 0)
     
@@ -1040,25 +1040,37 @@ def get_new_messages(request):
         id__gt=last_message_id
     ).exclude(sender=user).order_by('timestamp')
     
-    # Get new group messages (messages in groups the user is a member of)
+    # Get new group messages
     user_groups = user.chat_groups.all()
     new_group_messages = Message.objects.filter(
         group__in=user_groups,
         id__gt=last_message_id
     ).exclude(sender=user).order_by('timestamp')
     
-    # Combine messages
     all_messages = list(new_direct_messages) + list(new_group_messages)
     all_messages.sort(key=lambda x: x.timestamp)
     
     messages_data = []
     for msg in all_messages:
         sender_profile = UserProfile.objects.filter(user=msg.sender).first()
+        
+        if msg.message_type == 'voice':
+            content_data = {
+                'type': 'voice',
+                'duration': msg.voice_duration,
+                'file_url': msg.voice_file.url if msg.voice_file else None,
+            }
+        else:
+            content_data = {
+                'type': 'text',
+                'content': msg.content,
+            }
+        
         messages_data.append({
             'id': msg.id,
             'sender': msg.sender.fullname or msg.sender.username,
             'sender_id': msg.sender.id,
-            'content': msg.content,
+            'content': content_data,
             'timestamp': msg.timestamp.strftime('%I:%M %p'),
             'profile_pic': sender_profile.profile_pic.url if sender_profile and sender_profile.profile_pic else None,
             'type': 'group' if msg.group else 'direct',
