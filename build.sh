@@ -2,15 +2,19 @@
 # Exit on error
 set -o errexit
 
-# Upgrade pip
-pip install --upgrade pip
+echo "=== Starting build ==="
+echo "Python version:"
+python --version
 
-# Install dependencies
+echo "=== Installing dependencies ==="
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# Convert static asset files
+echo "=== Collecting static files ==="
 python manage.py collectstatic --no-input
 
-# Apply database migrations
+echo "=== Running migrations ==="
 python manage.py makemigrations --no-input
 python manage.py migrate --no-input
+
+echo "=== Build complete ==="
