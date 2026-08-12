@@ -2,7 +2,7 @@
 # Exit on error
 set -o errexit
 
-# Upgrade pip first
+# Upgrade pip
 pip install --upgrade pip
 
 # Install dependencies
