@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>CA²pp · Create Group</title>
+  <style>
+    /* ———— classic reset & base ———— */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #161731;
+      color: #f0f2f5;
+      font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ———— wrapper ———— */
+    .create-group-app {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* ———— sidebar ———— */
+    .sidebar {
+      flex: 0 0 220px;
+      background: #1a1b33;
+      padding: 2rem 1.2rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      min-height: 100vh;
+    }
+
+    .sidebar-brand {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      font-family: 'Garamond', 'Times New Roman', serif;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 1rem;
+    }
+
+    .sidebar-brand span {
+      color: #b0c7e7;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .sidebar-nav a {
+      color: #b8c4dd;
+      text-decoration: none;
+      padding: 0.6rem 0.8rem;
+      border-radius: 40px;
+      transition: background 0.2s, color 0.2s, padding-left 0.2s;
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+      font-family: 'Garamond', 'Times New Roman', serif;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: rgba(176, 199, 231, 0.08);
+      color: #d6e2f5;
+      border-color: rgba(176, 199, 231, 0.15);
+      padding-left: 1.2rem;
+    }
+
+    .sidebar-nav a.active {
+      background: rgba(176, 199, 231, 0.12);
+      border-color: #b0c7e7;
+      color: #e8edf7;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.9rem;
+      color: #7a86a3;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .sidebar-footer a {
+      color: #a6b7d9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .sidebar-footer a:hover {
+      color: #c2d6f0;
+    }
+
+    /* ———— main content ———— */
+    .main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      background: #161731;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-header h1 {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      font-family: 'Garamond', 'Times New Roman', serif;
+    }
+
+    .main-header .breadcrumb {
+      color: #8f9bb5;
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+
+    .main-header .breadcrumb a {
+      color: #b0c7e7;
+      text-decoration: none;
+    }
+
+    .main-header .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* ———— messages ———— */
+    .messages {
+      margin-bottom: 1.5rem;
+    }
+
+    .messages .message {
+      padding: 0.7rem 1.2rem;
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .messages .message.success {
+      background: rgba(111, 207, 151, 0.15);
+      border: 1px solid rgba(111, 207, 151, 0.2);
+      color: #6fcf97;
+    }
+
+    .messages .message.error {
+      background: rgba(232, 180, 180, 0.15);
+      border: 1px solid rgba(232, 180, 180, 0.2);
+      color: #e8b4b4;
+    }
+
+    .messages .message.info {
+      background: rgba(176, 199, 231, 0.1);
+      border: 1px solid rgba(176, 199, 231, 0.15);
+      color: #b0c7e7;
+    }
+
+    /* ———— form ———— */
+    .form-container {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      background: #1e1f3a;
+      padding: 2.2rem 2.5rem;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 1.8rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 1rem;
+      color: #cfd8e8;
+      margin-bottom: 0.4rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+    }
+
+    .form-group input[type="text"],
+    .form-group textarea {
+      width: 100%;
+      padding: 0.7rem 1.2rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #f0f2f5;
+      font-family: 'Garamond', serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .form-group textarea {
+      border-radius: 24px;
+      resize: vertical;
+      min-height: 80px;
+      font-family: 'Garamond', serif;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group textarea:focus {
+      border-color: #b0c7e7;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .form-group input[type="text"]::placeholder,
+    .form-group textarea::placeholder {
+      color: #8f9bb5;
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    /* ———— profile picture upload ———— */
+    .avatar-upload {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .avatar-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #2c2e50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      color: #b0c7e7;
+      border: 2px dashed rgba(176, 199, 231, 0.2);
+      flex-shrink: 0;
+      transition: border-color 0.2s, background 0.2s;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .avatar-preview .placeholder-icon {
+      font-size: 2.4rem;
+      opacity: 0.5;
+    }
+
+    .avatar-upload .upload-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .avatar-upload .upload-controls .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .avatar-upload .upload-controls .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .avatar-upload .upload-controls .file-label {
+      padding: 0.4rem 1.2rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #b8c4dd;
+      font-family: 'Garamond', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      display: inline-block;
+    }
+
+    .avatar-upload .upload-controls .file-label:hover {
+      background: rgba(176, 199, 231, 0.08);
+      border-color: rgba(176, 199, 231, 0.15);
+    }
+
+    .avatar-upload .upload-controls .remove-btn {
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: transparent;
+      color: #8f9bb5;
+      font-family: 'Garamond', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .avatar-upload .upload-controls .remove-btn:hover {
+      color: #e8b4b4;
+      border-color: rgba(232, 180, 180, 0.2);
+    }
+
+    .avatar-upload .upload-hint {
+      font-size: 0.8rem;
+      color: #6a7693;
+      font-style: italic;
+      width: 100%;
+      margin-top: 0.2rem;
+    }
+
+    /* ———— member selection ———— */
+    .member-select {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 0.4rem;
+    }
+
+    .member-select::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .member-select::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+    }
+
+    .member-select::-webkit-scrollbar-thumb {
+      background: rgba(176, 199, 231, 0.2);
+      border-radius: 10px;
+    }
+
+    .member-option {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 40px;
+      transition: background 0.2s;
+      cursor: default;
+    }
+
+    .member-option:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .member-option .m-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #2c2e50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #b0c7e7;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      font-family: 'Garamond', serif;
+    }
+
+    .member-option .m-name {
+      flex: 1;
+      color: #e8edf7;
+      font-size: 0.95rem;
+    }
+
+    .member-option .m-status {
+      font-size: 0.75rem;
+      color: #6a7693;
+      font-style: italic;
+    }
+
+    .member-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #b0c7e7;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .member-option .m-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* ———— form actions ———— */
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      flex-wrap: wrap;
+    }
+
+    .form-actions button {
+      padding: 0.7rem 2rem;
+      border-radius: 40px;
+      border: none;
+      font-family: 'Garamond', serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .form-actions .btn-primary {
+      background: #b0c7e7;
+      color: #161731;
+      border: 1px solid #b0c7e7;
+    }
+
+    .form-actions .btn-primary:hover {
+      background: #c2d6f0;
+      border-color: #c2d6f0;
+      transform: scale(1.02);
+    }
+
+    .form-actions .btn-secondary {
+      background: transparent;
+      color: #8f9bb5;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .form-actions .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #cfd8e8;
+    }
+
+    .form-actions .btn-primary:active,
+    .form-actions .btn-secondary:active {
+      transform: scale(0.97);
+    }
+
+    /* ———— responsive ———— */
+
+    @media (max-width: 820px) {
+      .sidebar {
+        flex: 0 0 100%;
+        min-height: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        gap: 1rem;
+      }
+
+      .sidebar-brand {
+        border-bottom: none;
+        padding-bottom: 0;
+        font-size: 1.8rem;
+      }
+
+      .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .sidebar-nav a {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.95rem;
+      }
+
+      .sidebar-footer {
+        display: none;
+      }
+
+      .main {
+        padding: 1.5rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .form-container {
+        padding: 1.8rem 1.5rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        padding: 0.8rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+      }
+
+      .sidebar-brand {
+        font-size: 1.6rem;
+        text-align: center;
+      }
+
+      .sidebar-nav {
+        justify-content: center;
+      }
+
+      .sidebar-nav a {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.7rem;
+      }
+
+      .main {
+        padding: 1rem 1rem 2rem;
+      }
+
+      .main-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.4rem;
+        text-align: center;
+      }
+
+      .main-header .breadcrumb {
+        text-align: center;
+        font-size: 0.85rem;
+      }
+
+      .form-container {
+        padding: 1.2rem 1rem;
+        border-radius: 24px;
+      }
+
+      .avatar-upload {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .avatar-preview {
+        width: 72px;
+        height: 72px;
+        font-size: 2rem;
+      }
+
+      .avatar-upload .upload-controls {
+        align-items: center;
+      }
+
+      .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .form-actions button {
+        text-align: center;
+        padding: 0.6rem 1.2rem;
+      }
+
+      .member-option .m-status {
+        display: none;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .form-container {
+        padding: 1rem 0.8rem;
+      }
+
+      .form-group label {
+        font-size: 0.9rem;
+      }
+
+      .form-group input[type="text"],
+      .form-group textarea {
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+      }
+
+      .member-option {
+        padding: 0.4rem 0.6rem;
+      }
+
+      .member-option .m-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+      }
+
+      .member-option .m-name {
+        font-size: 0.85rem;
+      }
+    }
+
+    /* landscape phones */
+    @media (max-height: 600px) and (orientation: landscape) {
+      .sidebar {
+        flex: 0 0 160px;
+        min-height: 100vh;
+        flex-direction: column;
+        padding: 1rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.04);
+        border-bottom: none;
+      }
+
+      .sidebar-brand {
+        font-size: 1.4rem;
+        padding-bottom: 0.6rem;
+      }
+
+      .sidebar-nav a {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+      }
+
+      .sidebar-footer {
+        display: flex;
+        font-size: 0.7rem;
+      }
+
+      .main {
+        padding: 1rem 1.2rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.4rem;
+      }
+
+      .form-container {
+        padding: 1.2rem 1.5rem;
+        max-width: 100%;
+      }
+
+      .avatar-preview {
+        width: 56px;
+        height: 56px;
+        font-size: 1.6rem;
+      }
+
+      .member-select {
+        max-height: 120px;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .sidebar {
+        flex: 0 0 260px;
+      }
+      .main {
+        padding: 2.5rem 3.5rem;
+      }
+      .form-container {
+        padding: 2.5rem 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="create-group-app">
+
+    <!-- sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand"><span>CA²</span>pp</div>
+      <nav class="sidebar-nav">
+        <a href="{% url 'index' %}">Dashboard</a>
+        <a href="{% url 'messages' %}">Messages</a>
+        <a href="{% url 'contacts' %}">Contacts</a>
+        <a href="{% url 'groups' %}">Groups</a>
+        <a href="{% url 'create_group' %}" class="active">Create Group</a>
+        <a href="{% url 'settings' %}">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="{% url 'settings' %}">Profile</a>
+        <a href="{% url 'logout' %}">Logout</a>
+        <span style="color:#5a6685; font-size:0.8rem;">v1.0 · classic</span>
+      </div>
+    </aside>
+
+    <!-- main content -->
+    <div class="main">
+      <div class="main-header">
+        <h1>Create Group</h1>
+        <span class="breadcrumb"><a href="{% url 'groups' %}">Groups</a> / New</span>
+      </div>
+
+      <!-- Display messages -->
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="form-container">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- group name -->
+          <div class="form-group">
+            <label for="name">Group Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter group name…" value="{{ form.name.value|default:'' }}" required>
+            {% if form.name.errors %}
+              <div style="color:#e8b4b4; font-size:0.85rem; margin-top:0.3rem;">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- profile picture -->
+          <div class="form-group">
+            <label>Group Profile Picture</label>
+            <div class="avatar-upload">
+              <div class="avatar-preview" id="avatarPreview">
+                <span class="placeholder-icon">👥</span>
+              </div>
+              <div class="upload-controls">
+                <div class="file-input-wrapper">
+                  <span class="file-label">Choose image</span>
+                  <input type="file" id="profile_pic" name="profile_pic" accept="image/*">
+                </div>
+                <button type="button" class="remove-btn" id="removeAvatar">Remove</button>
+                <span class="upload-hint">PNG, JPG or GIF · max 2MB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- description -->
+          <div class="form-group">
+            <label for="description">Description (optional)</label>
+            <textarea id="description" name="description" placeholder="What's this group about?" rows="2">{{ form.description.value|default:'' }}</textarea>
+          </div>
+
+          <!-- members -->
+          <div class="form-group">
+            <label>Add Members</label>
+            <div class="member-select">
+              {% for contact in contacts %}
+              <div class="member-option">
+                <input type="checkbox" name="members" value="{{ contact.contact.id }}" id="member{{ contact.contact.id }}">
+                <div class="m-avatar">
+                  {% if contact.profile_pic %}
+                    <img src="{{ contact.profile_pic }}" alt="{{ contact.contact.fullname }}">
+                  {% else %}
+                    {{ contact.contact.get_avatar_initials }}
+                  {% endif %}
+                </div>
+                <span class="m-name">{{ contact.contact.fullname|default:contact.contact.username }}</span>
+                <span class="m-status">
+                  {% if contact.is_online %}online{% else %}offline{% endif %}
+                </span>
+              </div>
+              {% empty %}
+              <div style="color:#8f9bb5; padding:0.5rem; text-align:center;">
+                No contacts available. 
+                <a href="{% url 'contacts' %}" style="color:#b0c7e7; text-decoration:none;">Add some friends first!</a>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- form actions -->
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Create Group</button>
+            <button type="reset" class="btn-secondary">Clear</button>
+            <a href="{% url 'groups' %}" style="text-decoration:none; align-self:center; color:#8f9bb5; font-size:0.9rem; margin-left:auto;">Cancel</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- avatar preview script -->
+  <script>
+    (function() {
+      const avatarInput = document.getElementById('profile_pic');
+      const avatarPreview = document.getElementById('avatarPreview');
+      const removeBtn = document.getElementById('removeAvatar');
+
+      // preview image
+      avatarInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            avatarPreview.innerHTML = `<img src="${ev.target.result}" alt="group avatar">`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // remove image
+      removeBtn.addEventListener('click', function() {
+        avatarInput.value = '';
+        avatarPreview.innerHTML = `<span class="placeholder-icon">👥</span>`;
+      });
+
+      // drag and drop support
+      avatarPreview.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#b0c7e7';
+        this.style.background = 'rgba(176, 199, 231, 0.05)';
+      });
+
+      avatarPreview.addEventListener('dragleave', function() {
+        this.style.borderColor = 'rgba(176, 199, 231, 0.2)';
+        this.style.background = '#2c2e50';
+      });
+
+      avatarPreview.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'rgba(176, 199, 231, 0.2)';
+        this.style.background = '#2c2e50';
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          avatarInput.files = files;
+          const event = new Event('change');
+          avatarInput.dispatchEvent(event);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

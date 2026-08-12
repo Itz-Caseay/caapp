@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>CA²pp · Message Details</title>
+  <style>
+    /* ———— classic reset & base ———— */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #161731;
+      color: #f0f2f5;
+      font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ———— wrapper ———— */
+    .message-detail-app {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* ———— sidebar ———— */
+    .sidebar {
+      flex: 0 0 220px;
+      background: #1a1b33;
+      padding: 2rem 1.2rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      min-height: 100vh;
+    }
+
+    .sidebar-brand {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      font-family: 'Garamond', 'Times New Roman', serif;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 1rem;
+    }
+
+    .sidebar-brand span {
+      color: #b0c7e7;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .sidebar-nav a {
+      color: #b8c4dd;
+      text-decoration: none;
+      padding: 0.6rem 0.8rem;
+      border-radius: 40px;
+      transition: background 0.2s, color 0.2s, padding-left 0.2s;
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+      font-family: 'Garamond', 'Times New Roman', serif;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: rgba(176, 199, 231, 0.08);
+      color: #d6e2f5;
+      border-color: rgba(176, 199, 231, 0.15);
+      padding-left: 1.2rem;
+    }
+
+    .sidebar-nav a.active {
+      background: rgba(176, 199, 231, 0.12);
+      border-color: #b0c7e7;
+      color: #e8edf7;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.9rem;
+      color: #7a86a3;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .sidebar-footer a {
+      color: #a6b7d9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .sidebar-footer a:hover {
+      color: #c2d6f0;
+    }
+
+    /* ———— main content ———— */
+    .main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      background: #161731;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-header h1 {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      font-family: 'Garamond', 'Times New Roman', serif;
+    }
+
+    .main-header .breadcrumb {
+      color: #8f9bb5;
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+
+    .main-header .breadcrumb a {
+      color: #b0c7e7;
+      text-decoration: none;
+    }
+
+    .main-header .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* ———— message detail card ———— */
+    .message-card {
+      max-width: 700px;
+      width: 100%;
+      margin: 0 auto;
+      background: #1e1f3a;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .message-card .message-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .message-card .message-header .sender-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #2c2e50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #b0c7e7;
+      font-size: 1.2rem;
+      font-family: 'Garamond', serif;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .message-card .message-header .sender-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .message-card .message-header .sender-info {
+      flex: 1;
+    }
+
+    .message-card .message-header .sender-info .sender-name {
+      font-size: 1.1rem;
+      color: #e8edf7;
+    }
+
+    .message-card .message-header .sender-info .sender-username {
+      font-size: 0.85rem;
+      color: #6a7693;
+    }
+
+    .message-card .message-header .message-status {
+      font-size: 0.8rem;
+      color: #6a7693;
+      text-align: right;
+    }
+
+    .message-card .message-header .message-status .read-status {
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .message-card .message-header .message-status .read-status.read {
+      background: rgba(111, 207, 151, 0.15);
+      color: #6fcf97;
+    }
+
+    .message-card .message-header .message-status .read-status.unread {
+      background: rgba(232, 180, 180, 0.15);
+      color: #e8b4b4;
+    }
+
+    .message-card .message-body {
+      padding: 2rem;
+    }
+
+    .message-card .message-body .message-content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #e8edf7;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message-card .message-body .message-content .quote {
+      border-left: 3px solid #b0c7e7;
+      padding-left: 1rem;
+      margin: 0.5rem 0;
+      color: #b8c4dd;
+      font-style: italic;
+    }
+
+    .message-card .message-footer {
+      padding: 1rem 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .message-card .message-footer .timestamp {
+      color: #6a7693;
+      font-size: 0.85rem;
+    }
+
+    .message-card .message-footer .timestamp .label {
+      color: #8f9bb5;
+      font-style: italic;
+    }
+
+    .message-card .message-footer .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .message-card .message-footer .actions a,
+    .message-card .message-footer .actions button {
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      color: #b8c4dd;
+      font-family: 'Garamond', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .message-card .message-footer .actions a:hover,
+    .message-card .message-footer .actions button:hover {
+      background: rgba(176, 199, 231, 0.08);
+      border-color: rgba(176, 199, 231, 0.15);
+    }
+
+    .message-card .message-footer .actions .reply-btn {
+      background: #b0c7e7;
+      color: #161731;
+      border-color: #b0c7e7;
+    }
+
+    .message-card .message-footer .actions .reply-btn:hover {
+      background: #c2d6f0;
+      border-color: #c2d6f0;
+    }
+
+    .message-card .message-footer .actions .delete-btn {
+      color: #e8b4b4;
+    }
+
+    .message-card .message-footer .actions .delete-btn:hover {
+      border-color: rgba(232, 180, 180, 0.2);
+      background: rgba(232, 180, 180, 0.05);
+    }
+
+    /* ———— conversation context ———— */
+    .conversation-context {
+      max-width: 700px;
+      width: 100%;
+      margin: 1.5rem auto 0;
+      padding: 1.5rem 2rem;
+      background: #1a1b33;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .conversation-context .context-title {
+      font-size: 1rem;
+      color: #8f9bb5;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+
+    .conversation-context .context-message {
+      padding: 0.6rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .conversation-context .context-message .ctx-sender {
+      color: #b0c7e7;
+      font-weight: 600;
+    }
+
+    .conversation-context .context-message .ctx-content {
+      flex: 1;
+      margin: 0 1rem;
+      color: #b8c4dd;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conversation-context .context-message .ctx-time {
+      color: #6a7693;
+      font-size: 0.75rem;
+    }
+
+    .conversation-context .context-message.current {
+      background: rgba(176, 199, 231, 0.05);
+      border-left: 3px solid #b0c7e7;
+    }
+
+    /* ———— responsive ———— */
+    @media (max-width: 820px) {
+      .sidebar {
+        flex: 0 0 100%;
+        min-height: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        gap: 1rem;
+      }
+
+      .sidebar-brand {
+        border-bottom: none;
+        padding-bottom: 0;
+        font-size: 1.8rem;
+      }
+
+      .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .sidebar-nav a {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.95rem;
+      }
+
+      .sidebar-footer {
+        display: none;
+      }
+
+      .main {
+        padding: 1.5rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .message-card .message-header {
+        padding: 1rem 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .message-card .message-body {
+        padding: 1.5rem;
+      }
+
+      .message-card .message-footer {
+        padding: 1rem 1.5rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+
+      .message-card .message-footer .actions {
+        justify-content: center;
+      }
+
+      .conversation-context {
+        padding: 1rem 1.5rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        padding: 0.8rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+      }
+
+      .sidebar-brand {
+        font-size: 1.6rem;
+        text-align: center;
+      }
+
+      .sidebar-nav {
+        justify-content: center;
+      }
+
+      .sidebar-nav a {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.7rem;
+      }
+
+      .main {
+        padding: 1rem;
+      }
+
+      .main-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.4rem;
+        text-align: center;
+      }
+
+      .main-header .breadcrumb {
+        text-align: center;
+        font-size: 0.85rem;
+      }
+
+      .message-card .message-body .message-content {
+        font-size: 1rem;
+      }
+
+      .message-card .message-header .sender-info .sender-name {
+        font-size: 1rem;
+      }
+
+      .conversation-context .context-message {
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .conversation-context .context-message .ctx-content {
+        white-space: normal;
+        margin: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="message-detail-app">
+
+    <!-- sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand"><span>CA²</span>pp</div>
+      <nav class="sidebar-nav">
+        <a href="{% url 'index' %}">Dashboard</a>
+        <a href="{% url 'messages' %}">Messages</a>
+        <a href="{% url 'contacts' %}">Contacts</a>
+        <a href="{% url 'groups' %}">Groups</a>
+        <a href="{% url 'settings' %}">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="{% url 'settings' %}">Profile</a>
+        <a href="{% url 'logout' %}">Logout</a>
+        <span style="color:#5a6685; font-size:0.8rem;">v1.0 · classic</span>
+      </div>
+    </aside>
+
+    <!-- main content -->
+    <div class="main">
+      <div class="main-header">
+        <h1>Message Details</h1>
+        <span class="breadcrumb">
+          <a href="
+            {% if message.receiver and message.sender == user %}
+              {% url 'chat_detail' user_id=message.receiver.id %}
+            {% elif message.sender and message.receiver == user %}
+              {% url 'chat_detail' user_id=message.sender.id %}
+            {% elif message.group %}
+              {% url 'group_detail' group_id=message.group.id %}
+            {% else %}
+              {% url 'messages' %}
+            {% endif %}
+          ">
+            ← Back to Conversation
+          </a>
+        </span>
+      </div>
+
+      <!-- Message Detail Card -->
+      <div class="message-card">
+        <!-- Header -->
+        <div class="message-header">
+          <div class="sender-avatar">
+            {% if message.sender.profile.profile_pic %}
+              <img src="{{ message.sender.profile.profile_pic.url }}" alt="{{ message.sender.fullname }}">
+            {% else %}
+              {{ message.sender.get_avatar_initials }}
+            {% endif %}
+          </div>
+          <div class="sender-info">
+            <div class="sender-name">{{ message.sender.fullname|default:message.sender.username }}</div>
+            <div class="sender-username">@{{ message.sender.username }}</div>
+          </div>
+          <div class="message-status">
+            <div class="read-status {% if message.is_read %}read{% else %}unread{% endif %}">
+              {% if message.is_read %}Read{% else %}Unread{% endif %}
+            </div>
+            <div style="font-size:0.7rem; margin-top:0.2rem;">
+              {% if message.is_read and message.read_at %}
+                Read at {{ message.read_at|date:"H:i" }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="message-body">
+          <div class="message-content">
+            {% if message.is_group_message %}
+              <div style="color:#6a7693; font-size:0.85rem; margin-bottom:0.5rem;">
+                📢 Group: <a href="{% url 'group_detail' group_id=message.group.id %}" style="color:#b0c7e7; text-decoration:none;">
+                  {{ message.group.name }}
+                </a>
+              </div>
+            {% endif %}
+            {{ message.content|linebreaks }}
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="message-footer">
+          <div class="timestamp">
+            <span class="label">Sent:</span> {{ message.timestamp|date:"l, F j, Y" }} at {{ message.timestamp|date:"H:i" }}
+            {% if message.is_read and message.read_at %}
+              <br><span class="label">Read:</span> {{ message.read_at|date:"l, F j, Y" }} at {{ message.read_at|date:"H:i" }}
+            {% endif %}
+          </div>
+          <div class="actions">
+            <a href="
+              {% if message.receiver and message.sender == user %}
+                {% url 'chat_detail' user_id=message.receiver.id %}
+              {% elif message.sender and message.receiver == user %}
+                {% url 'chat_detail' user_id=message.sender.id %}
+              {% elif message.group %}
+                {% url 'group_detail' group_id=message.group.id %}
+              {% else %}
+                {% url 'messages' %}
+              {% endif %}
+            " class="reply-btn">Reply</a>
+            
+            {% if message.sender == user %}
+              <button class="delete-btn" onclick="confirmDelete({{ message.id }})">Delete</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversation Context -->
+      {% if conversation_messages %}
+      <div class="conversation-context">
+        <div class="context-title">📋 Conversation Context</div>
+        {% for msg in conversation_messages %}
+          <div class="context-message {% if msg.id == message.id %}current{% endif %}">
+            <span class="ctx-sender">{{ msg.sender.fullname|default:msg.sender.username }}</span>
+            <span class="ctx-content">{{ msg.content|truncatechars:50 }}</span>
+            <span class="ctx-time">{{ msg.timestamp|date:"H:i" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Script -->
+  <script>
+    function confirmDelete(messageId) {
+      if (confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+        // Create form for DELETE request
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = `/delete-message/${messageId}/`;
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrfmiddlewaretoken';
+        csrf.value = '{{ csrf_token }}';
+        
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+      }
+    }
+  </script>
+</body>
+</html>

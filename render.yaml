@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: caapp
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn caapp.wsgi:application
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: caapp.settings
+      - key: DATABASE_URL
+        fromDatabase:
+          name: caapp_db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.11.8
+
+databases:
+  - name: caapp_db
+    plan: free
+    databaseName: caapp
+    user: caapp_user

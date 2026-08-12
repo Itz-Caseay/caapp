@@ -1,0 +1,44 @@
+# ============================================
+# URLS.PY
+# ============================================
+
+from django.urls import path
+from . import views
+
+app_name = 'base'
+
+urlpatterns = [
+    # Auth
+    path('', views.login_user, name='login'),
+    path('signup/', views.signup, name='signup'),
+    path('logout/', views.logout_user, name='logout'),
+    
+    # Dashboard
+    path('index/', views.index, name='index'),
+    
+    # Messages
+    path('messages/', views.messages_view, name='messages'),
+    path('chat/<int:user_id>/', views.chat_detail_view, name='chat_detail'),
+    path('send-message/', views.send_message_ajax, name='send_message'),
+    path('get-new-messages/', views.get_new_messages, name='get_new_messages'),
+    path('mark-read/<int:message_id>/', views.mark_message_read, name='mark_message_read'),
+    path('mark-all-read/<int:user_id>/', views.mark_all_read, name='mark_all_read'),
+    
+    # Contacts
+    path('contacts/', views.contacts_view, name='contacts'),
+    path('contacts/add/', views.add_contact_view, name='add_contact'),
+    path('contacts/remove/<int:contact_id>/', views.remove_contact_view, name='remove_contact'),
+    path('contacts/favorite/<int:contact_id>/', views.toggle_favorite_view, name='toggle_favorite'),
+    
+    # Groups
+    path('groups/', views.groups_view, name='groups'),
+    path('groups/create/', views.create_group_view, name='create_group'),
+    path('groups/<int:group_id>/', views.group_detail_view, name='group_detail'),
+    path('groups/<int:group_id>/add-member/', views.add_group_member, name='add_group_member'),
+    path('groups/<int:group_id>/leave/', views.leave_group, name='leave_group'),
+    path('groups/<int:group_id>/transfer-admin/<int:user_id>/', views.transfer_admin, name='transfer_admin'),
+    
+    # Settings
+    path('settings/', views.settings_view, name='settings'),
+]
+

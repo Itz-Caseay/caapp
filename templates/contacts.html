@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>CA²pp · Contacts</title>
+  <style>
+    /* ———— classic reset & base ———— */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #161731;
+      color: #f0f2f5;
+      font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ———— contacts wrapper ———— */
+    .contacts-app {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* ———— sidebar ———— */
+    .sidebar {
+      flex: 0 0 220px;
+      background: #1a1b33;
+      padding: 2rem 1.2rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      min-height: 100vh;
+    }
+
+    .sidebar-brand {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      font-family: 'Garamond', 'Times New Roman', serif;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 1rem;
+    }
+
+    .sidebar-brand span {
+      color: #b0c7e7;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .sidebar-nav a {
+      color: #b8c4dd;
+      text-decoration: none;
+      padding: 0.6rem 0.8rem;
+      border-radius: 40px;
+      transition: background 0.2s, color 0.2s, padding-left 0.2s;
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+      font-family: 'Garamond', 'Times New Roman', serif;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: rgba(176, 199, 231, 0.08);
+      color: #d6e2f5;
+      border-color: rgba(176, 199, 231, 0.15);
+      padding-left: 1.2rem;
+    }
+
+    .sidebar-nav a.active {
+      background: rgba(176, 199, 231, 0.12);
+      border-color: #b0c7e7;
+      color: #e8edf7;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.9rem;
+      color: #7a86a3;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .sidebar-footer a {
+      color: #a6b7d9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .sidebar-footer a:hover {
+      color: #c2d6f0;
+    }
+
+    /* ———— main content ———— */
+    .main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      background: #161731;
+      min-height: 100vh;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-header h1 {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      font-family: 'Garamond', 'Times New Roman', serif;
+    }
+
+    .main-header .search-area {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .main-header .search-area form {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .main-header .search-area input {
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #f0f2f5;
+      font-family: 'Garamond', serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 250px;
+    }
+
+    .main-header .search-area input::placeholder {
+      color: #8f9bb5;
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    .main-header .search-area input:focus {
+      border-color: #b0c7e7;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .main-header .search-area .search-btn {
+      padding: 0.5rem 1.4rem;
+      border-radius: 40px;
+      border: none;
+      background: #b0c7e7;
+      color: #161731;
+      font-weight: 600;
+      font-family: 'Garamond', serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .main-header .search-area .search-btn:hover {
+      background: #c2d6f0;
+      transform: scale(1.02);
+    }
+
+    .main-header .search-area .clear-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: transparent;
+      color: #8f9bb5;
+      font-family: 'Garamond', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      text-decoration: none;
+    }
+
+    .main-header .search-area .clear-btn:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #cfd8e8;
+    }
+
+    /* ———— search results ———— */
+    .search-results {
+      margin-top: 1.5rem;
+    }
+
+    .search-results .result-count {
+      color: #8f9bb5;
+      font-style: italic;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .search-results .result-count strong {
+      color: #e8edf7;
+    }
+
+    .contacts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .contact-card {
+      background: #1e1f3a;
+      padding: 1.2rem 1rem;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.15s, border-color 0.2s, background 0.2s;
+    }
+
+    .contact-card:hover {
+      border-color: rgba(176, 199, 231, 0.15);
+      transform: translateY(-3px);
+      background: #21224a;
+    }
+
+    .contact-card .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #2c2e50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #b0c7e7;
+      font-size: 1.6rem;
+      font-family: 'Garamond', serif;
+      margin-bottom: 0.6rem;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .contact-card .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .contact-card .name {
+      font-size: 1.1rem;
+      color: #e8edf7;
+      font-weight: 400;
+    }
+
+    .contact-card .username {
+      font-size: 0.85rem;
+      color: #6a7693;
+      margin-top: 0.1rem;
+    }
+
+    .contact-card .status {
+      font-size: 0.85rem;
+      color: #8f9bb5;
+      font-style: italic;
+      margin-top: 0.1rem;
+    }
+
+    .contact-card .status .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6fcf97;
+      margin-right: 4px;
+    }
+
+    .contact-card .status .dot.offline {
+      background: #7a86a3;
+    }
+
+    .contact-card .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .contact-card .action-buttons button,
+    .contact-card .action-buttons a {
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.04);
+      color: #b8c4dd;
+      font-family: 'Garamond', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .contact-card .action-buttons button:hover,
+    .contact-card .action-buttons a:hover {
+      background: rgba(176, 199, 231, 0.08);
+      border-color: rgba(176, 199, 231, 0.15);
+      color: #d6e2f5;
+    }
+
+    .contact-card .action-buttons button.primary,
+    .contact-card .action-buttons a.primary {
+      background: #b0c7e7;
+      color: #161731;
+      border-color: #b0c7e7;
+    }
+
+    .contact-card .action-buttons button.primary:hover,
+    .contact-card .action-buttons a.primary:hover {
+      background: #c2d6f0;
+      border-color: #c2d6f0;
+      color: #161731;
+    }
+
+    .contact-card .action-buttons .add-btn {
+      background: rgba(111, 207, 151, 0.15);
+      border-color: rgba(111, 207, 151, 0.2);
+      color: #6fcf97;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.8rem;
+    }
+
+    .contact-card .action-buttons .add-btn:hover {
+      background: rgba(111, 207, 151, 0.25);
+    }
+
+    .contact-card .action-buttons .add-to-group-btn {
+      background: rgba(176, 199, 231, 0.1);
+      border-color: rgba(176, 199, 231, 0.15);
+      color: #b0c7e7;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.8rem;
+    }
+
+    .contact-card .action-buttons .add-to-group-btn:hover {
+      background: rgba(176, 199, 231, 0.2);
+    }
+
+    .contact-card .action-buttons .remove-btn {
+      background: rgba(232, 180, 180, 0.1);
+      border-color: rgba(232, 180, 180, 0.15);
+      color: #e8b4b4;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.8rem;
+    }
+
+    .contact-card .action-buttons .remove-btn:hover {
+      background: rgba(232, 180, 180, 0.2);
+    }
+
+    /* ———— empty state ———— */
+    .empty-state {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 3rem;
+      color: #8f9bb5;
+    }
+
+    .empty-state .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state .hint {
+      font-size: 0.9rem;
+      color: #6a7693;
+      margin-top: 0.5rem;
+    }
+
+    /* ———— group selection modal ———— */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: #1e1f3a;
+      padding: 2rem;
+      border-radius: 32px;
+      max-width: 400px;
+      width: 90%;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal h3 {
+      font-weight: 400;
+      font-family: 'Garamond', serif;
+      margin-bottom: 0.5rem;
+      color: #e8edf7;
+    }
+
+    .modal .modal-subtitle {
+      color: #8f9bb5;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .modal .group-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+
+    .modal .group-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 40px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .modal .group-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .modal .group-item .g-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #2c2e50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #b0c7e7;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .modal .group-item .g-name {
+      flex: 1;
+      color: #e8edf7;
+      font-size: 0.95rem;
+    }
+
+    .modal .group-item .g-members {
+      color: #6a7693;
+      font-size: 0.75rem;
+    }
+
+    .modal .modal-actions {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+
+    .modal .modal-actions button {
+      padding: 0.5rem 1.5rem;
+      border-radius: 40px;
+      border: none;
+      font-family: 'Garamond', serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .modal .modal-actions .btn-cancel {
+      background: rgba(255, 255, 255, 0.04);
+      color: #8f9bb5;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .modal .modal-actions .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .modal .modal-actions .btn-add {
+      background: #b0c7e7;
+      color: #161731;
+    }
+
+    .modal .modal-actions .btn-add:hover {
+      background: #c2d6f0;
+      transform: scale(1.02);
+    }
+
+    .modal .modal-actions .btn-add:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ———— responsive ———— */
+    @media (max-width: 820px) {
+      .sidebar {
+        flex: 0 0 100%;
+        min-height: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        gap: 1rem;
+      }
+
+      .sidebar-brand {
+        border-bottom: none;
+        padding-bottom: 0;
+        font-size: 1.8rem;
+      }
+
+      .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+
+      .sidebar-nav a {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.95rem;
+      }
+
+      .sidebar-footer {
+        display: none;
+      }
+
+      .main {
+        padding: 1.5rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .main-header .search-area input {
+        width: 180px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        padding: 0.8rem 1rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+      }
+
+      .sidebar-brand {
+        font-size: 1.6rem;
+        text-align: center;
+      }
+
+      .sidebar-nav {
+        justify-content: center;
+      }
+
+      .sidebar-nav a {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.7rem;
+      }
+
+      .main {
+        padding: 1rem 1rem 2rem;
+      }
+
+      .main-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.4rem;
+        text-align: center;
+      }
+
+      .main-header .search-area {
+        justify-content: center;
+      }
+
+      .main-header .search-area form {
+        justify-content: center;
+      }
+
+      .main-header .search-area input {
+        width: 160px;
+        font-size: 0.85rem;
+      }
+
+      .contacts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.8rem;
+      }
+
+      .contact-card .avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 1.3rem;
+      }
+
+      .contact-card .name {
+        font-size: 1rem;
+      }
+
+      .modal {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .contacts-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+      }
+
+      .contact-card {
+        padding: 0.8rem 0.6rem;
+      }
+
+      .contact-card .avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+      }
+
+      .contact-card .name {
+        font-size: 0.9rem;
+      }
+
+      .contact-card .status {
+        font-size: 0.75rem;
+      }
+
+      .contact-card .action-buttons button,
+      .contact-card .action-buttons a {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.7rem;
+      }
+    }
+
+    @media (max-height: 600px) and (orientation: landscape) {
+      .sidebar {
+        flex: 0 0 160px;
+        min-height: 100vh;
+        flex-direction: column;
+        padding: 1rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.04);
+        border-bottom: none;
+      }
+
+      .sidebar-brand {
+        font-size: 1.4rem;
+        padding-bottom: 0.6rem;
+      }
+
+      .sidebar-nav a {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+      }
+
+      .sidebar-footer {
+        display: flex;
+        font-size: 0.7rem;
+      }
+
+      .main {
+        padding: 1rem 1.2rem;
+      }
+
+      .main-header h1 {
+        font-size: 1.4rem;
+      }
+
+      .contacts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.6rem;
+      }
+
+      .contact-card .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .sidebar {
+        flex: 0 0 260px;
+      }
+      .main {
+        padding: 2.5rem 3.5rem;
+      }
+      .contacts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="contacts-app">
+
+    <!-- sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand"><span>CA²</span>pp</div>
+      <nav class="sidebar-nav">
+        <a href="{% url 'index' %}">Dashboard</a>
+        <a href="{% url 'messages' %}">Messages</a>
+        <a href="{% url 'contacts' %}" class="active">Contacts</a>
+        <a href="{% url 'groups' %}">Groups</a>
+        <a href="{% url 'settings' %}">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="{% url 'settings' %}">Profile</a>
+        <a href="{% url 'logout' %}">Logout</a>
+        <span style="color:#5a6685; font-size:0.8rem;">v1.0 · classic</span>
+      </div>
+    </aside>
+
+    <!-- main content -->
+    <div class="main">
+      <div class="main-header">
+        <h1>Contacts</h1>
+        <div class="search-area">
+          <form method="get" action="{% url 'contacts' %}">
+            <input type="text" name="q" placeholder="Search by username or full name…" value="{{ request.GET.q|default:'' }}">
+            <button type="submit" class="search-btn">Search</button>
+            {% if request.GET.q %}
+              <a href="{% url 'contacts' %}" class="clear-btn">Clear</a>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+
+      <!-- search results -->
+      <div class="search-results">
+        {% if request.GET.q %}
+          <div class="result-count">
+            Found <strong>{{ contacts|length }}</strong> result{% if contacts|length != 1 %}s{% endif %} for "<strong>{{ request.GET.q }}</strong>"
+          </div>
+        {% else %}
+          <div class="result-count" style="margin-bottom:1rem;">
+            Your contacts — search to find more users
+          </div>
+        {% endif %}
+
+        <div class="contacts-grid">
+          {% for contact_data in contacts %}
+          <div class="contact-card" data-user-id="{{ contact_data.contact.id }}">
+            <div class="avatar">
+              {% if contact_data.profile_pic %}
+                <img src="{{ contact_data.profile_pic }}" alt="{{ contact_data.contact.fullname }}">
+              {% else %}
+                {{ contact_data.contact.get_avatar_initials }}
+              {% endif %}
+            </div>
+            <div class="name">{{ contact_data.contact.fullname|default:contact_data.contact.username }}</div>
+            <div class="username">@{{ contact_data.contact.username }}</div>
+            <div class="status">
+              <span class="dot {% if not contact_data.is_online %}offline{% endif %}"></span>
+              {% if contact_data.is_online %}Online{% else %}Offline{% endif %}
+            </div>
+            <div class="action-buttons">
+              {% if contact_data.is_contact %}
+                <a href="{% url 'chat_detail' user_id=contact_data.contact.id %}" class="primary">Message</a>
+                <button class="add-to-group-btn" onclick="showGroupModal({{ contact_data.contact.id }}, '{{ contact_data.contact.username }}')">+ Group</button>
+                <form method="post" action="{% url 'remove_contact' contact_id=contact_data.contact.id %}" style="display:inline;" onsubmit="return confirm('Remove this contact?')">
+                  {% csrf_token %}
+                  <button type="submit" class="remove-btn">Remove</button>
+                </form>
+              {% else %}
+                <form method="post" action="{% url 'add_contact' %}" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="username" value="{{ contact_data.contact.username }}">
+                  <button type="submit" class="add-btn">+ Add Contact</button>
+                </form>
+                <button class="add-to-group-btn" onclick="showGroupModal({{ contact_data.contact.id }}, '{{ contact_data.contact.username }}')">+ Group</button>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="empty-state">
+            <div class="icon">🔍</div>
+            {% if request.GET.q %}
+              <p>No users found matching "<strong>{{ request.GET.q }}</strong>"</p>
+              <p class="hint">Try a different search term</p>
+            {% else %}
+              <p>You don't have any contacts yet</p>
+              <p class="hint">Search for users to add them as contacts</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group Selection Modal -->
+  <div class="modal-overlay" id="groupModal">
+    <div class="modal">
+      <h3>Add to Group</h3>
+      <p class="modal-subtitle" id="modalUserInfo">Adding user to group...</p>
+      <div class="group-list" id="groupList">
+        <div style="color:#6a7693; text-align:center; padding:1rem;">Loading groups...</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeGroupModal()">Cancel</button>
+        <button class="btn-add" id="addToGroupBtn" onclick="addToSelectedGroup()" disabled>Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedUserId = null;
+    let selectedUsername = '';
+    let selectedGroupId = null;
+
+    function showGroupModal(userId, username) {
+      selectedUserId = userId;
+      selectedUsername = username;
+      document.getElementById('modalUserInfo').textContent = `Adding @${username} to group...`;
+      document.getElementById('groupModal').classList.add('active');
+      document.getElementById('addToGroupBtn').disabled = true;
+      selectedGroupId = null;
+      loadGroups();
+    }
+
+    function closeGroupModal() {
+      document.getElementById('groupModal').classList.remove('active');
+      selectedUserId = null;
+      selectedGroupId = null;
+      document.getElementById('addToGroupBtn').disabled = true;
+    }
+
+    function loadGroups() {
+      const groupList = document.getElementById('groupList');
+      groupList.innerHTML = '<div style="color:#6a7693; text-align:center; padding:1rem;">Loading groups...</div>';
+      
+      fetch('{% url "get_user_groups_api" %}')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.groups && data.groups.length > 0) {
+            groupList.innerHTML = '';
+            data.groups.forEach(group => {
+              const div = document.createElement('div');
+              div.className = 'group-item';
+              div.onclick = function() {
+                document.querySelectorAll('.group-item').forEach(el => el.style.background = 'transparent');
+                this.style.background = 'rgba(176, 199, 231, 0.08)';
+                selectedGroupId = group.id;
+                document.getElementById('addToGroupBtn').disabled = false;
+              };
+              div.innerHTML = `
+                <div class="g-avatar">${group.name.charAt(0).toUpperCase()}</div>
+                <span class="g-name">${group.name}</span>
+                <span class="g-members">${group.member_count} members</span>
+              `;
+              groupList.appendChild(div);
+            });
+          } else {
+            groupList.innerHTML = `
+              <div style="color:#6a7693; text-align:center; padding:1rem;">
+                No groups available. 
+                <a href="{% url 'create_group' %}" style="color:#b0c7e7; text-decoration:none;">Create one first!</a>
+              </div>
+            `;
+          }
+        })
+        .catch(error => {
+          groupList.innerHTML = '<div style="color:#e8b4b4; text-align:center; padding:1rem;">Error loading groups</div>';
+          console.error('Error loading groups:', error);
+        });
+    }
+
+    function addToSelectedGroup() {
+      if (!selectedUserId || !selectedGroupId) {
+        alert('Please select a group first.');
+        return;
+      }
+
+      const form = document.createElement('form');
+      form.method = 'post';
+      form.action = `{% url 'add_group_member' group_id=0 %}`.replace('0', selectedGroupId);
+      
+      const csrf = document.createElement('input');
+      csrf.type = 'hidden';
+      csrf.name = 'csrfmiddlewaretoken';
+      csrf.value = '{{ csrf_token }}';
+      
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'username';
+      input.value = selectedUsername;
+      
+      form.appendChild(csrf);
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    document.getElementById('groupModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeGroupModal();
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeGroupModal();
+      }
+    });
+  </script>
+</body>
+</html>

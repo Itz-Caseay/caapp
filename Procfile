@@ -1,0 +1,1 @@
+web: gunicorn caapp.wsgi:application
