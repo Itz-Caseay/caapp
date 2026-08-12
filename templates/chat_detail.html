@@ -263,98 +263,76 @@
       color: #6fcf97;
     }
 
-    .message .msg-actions {
-      position: absolute;
-      top: 0.3rem;
-      right: 0.5rem;
-      display: none;
-      gap: 0.3rem;
-    }
-
-    .message:hover .msg-actions {
+    /* ———— voice message styles ———— */
+    .voice-player {
       display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      min-width: 150px;
+      padding: 0.2rem 0;
     }
 
-    .message .msg-actions button {
-      background: rgba(255, 255, 255, 0.05);
+    .voice-player .play-btn {
+      background: #b0c7e7;
       border: none;
-      color: #8f9bb5;
-      padding: 0.1rem 0.4rem;
-      border-radius: 12px;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
       cursor: pointer;
-      font-size: 0.7rem;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    .message .msg-actions button:hover {
-      background: rgba(176, 199, 231, 0.1);
-      color: #b0c7e7;
-    }
-
-    .message .msg-actions .delete-btn:hover {
-      background: rgba(232, 180, 180, 0.15);
-      color: #e8b4b4;
-    }
-
-    /* ———— message date divider ———— */
-    .date-divider {
-      text-align: center;
-      padding: 0.5rem;
-      color: #6a7693;
-      font-size: 0.8rem;
-      font-style: italic;
-      position: relative;
-    }
-
-    .date-divider span {
-      background: #161731;
-      padding: 0 1rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .date-divider::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    /* ———— typing indicator ———— */
-    .typing-indicator {
-      display: none;
-      padding: 0.5rem 1rem;
-      color: #8f9bb5;
-      font-style: italic;
+      color: #161731;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.9rem;
-      align-self: flex-start;
+      transition: background 0.2s, transform 0.1s;
+      flex-shrink: 0;
     }
 
-    .typing-indicator.active {
-      display: block;
+    .voice-player .play-btn:hover {
+      background: #c2d6f0;
+      transform: scale(1.05);
     }
 
-    .typing-indicator .dots {
-      display: inline-block;
-      animation: typing 1.4s infinite;
+    .voice-player .play-btn.playing {
+      background: #e8b4b4;
     }
 
-    @keyframes typing {
-      0% { opacity: 0.3; }
-      50% { opacity: 1; }
-      100% { opacity: 0.3; }
+    .voice-player .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: #2c2e50;
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+      min-width: 60px;
     }
 
-    /* ———— message input ———— */
+    .voice-player .progress-bar .progress-fill {
+      height: 100%;
+      background: #b0c7e7;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    .voice-player .duration {
+      color: #8f9bb5;
+      font-size: 0.85rem;
+      min-width: 35px;
+      text-align: center;
+    }
+
+    /* ———— message input area ———— */
+    .message-input-wrapper {
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      background: #1a1b33;
+      padding: 0.8rem 2rem;
+    }
+
     .message-input {
       display: flex;
       gap: 0.8rem;
-      padding: 1rem 2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-      background: #1a1b33;
+      align-items: center;
     }
 
     .message-input input {
@@ -381,7 +359,7 @@
       background: rgba(255, 255, 255, 0.06);
     }
 
-    .message-input button {
+    .message-input .btn-send {
       padding: 0.7rem 1.8rem;
       border-radius: 40px;
       border: none;
@@ -396,15 +374,117 @@
       text-transform: uppercase;
     }
 
-    .message-input button:hover {
+    .message-input .btn-send:hover {
       background: #c2d6f0;
       transform: scale(1.02);
     }
 
-    .message-input button:disabled {
+    .message-input .btn-send:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
+    }
+
+    /* ———— voice recording buttons ———— */
+    .btn-voice {
+      background: #b0c7e7;
+      color: #161731;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .btn-voice:hover {
+      background: #c2d6f0;
+      transform: scale(1.05);
+    }
+
+    .btn-voice:active {
+      transform: scale(0.95);
+    }
+
+    .btn-voice.recording {
+      background: #e8b4b4;
+      animation: pulse 1s infinite;
+    }
+
+    .btn-voice.stop {
+      background: #e8b4b4;
+      display: none;
+    }
+
+    .btn-voice.stop:hover {
+      background: #e6a0a0;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    /* ———— voice preview ———— */
+    .voice-preview {
+      display: none;
+      padding: 0.5rem 1rem;
+      background: #1e1f3a;
+      border-radius: 40px;
+      margin-top: 0.5rem;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .voice-preview.active {
+      display: flex;
+    }
+
+    .voice-preview .preview-icon {
+      color: #b0c7e7;
+      font-size: 1.2rem;
+    }
+
+    .voice-preview .preview-progress {
+      flex: 1;
+      height: 4px;
+      background: #2c2e50;
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .voice-preview .preview-progress .preview-fill {
+      height: 100%;
+      background: #b0c7e7;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    .voice-preview .preview-time {
+      color: #8f9bb5;
+      font-size: 0.85rem;
+      min-width: 35px;
+    }
+
+    .voice-preview .preview-cancel {
+      background: transparent;
+      border: none;
+      color: #e8b4b4;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0 0.3rem;
+      transition: color 0.2s;
+    }
+
+    .voice-preview .preview-cancel:hover {
+      color: #e6a0a0;
     }
 
     /* ———— empty state ———— */
@@ -471,13 +551,8 @@
         max-height: calc(100vh - 180px);
       }
 
-      .message-input {
+      .message-input-wrapper {
         padding: 0.8rem 1rem;
-        flex-direction: column;
-      }
-
-      .message-input button {
-        width: 100%;
       }
 
       .message {
@@ -538,14 +613,36 @@
         padding: 0.6rem 1rem;
       }
 
+      .voice-player {
+        min-width: 100px;
+      }
+
+      .voice-player .play-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+      }
+
+      .message-input {
+        flex-wrap: wrap;
+      }
+
       .message-input input {
         font-size: 0.9rem;
         padding: 0.6rem 1rem;
+        min-width: 60%;
       }
 
-      .message-input button {
+      .message-input .btn-send {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
+        flex: 1;
+      }
+
+      .btn-voice {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
       }
     }
 
@@ -595,7 +692,7 @@
         max-height: calc(100vh - 160px);
       }
 
-      .message-input {
+      .message-input-wrapper {
         padding: 0.5rem 1rem;
       }
     }
@@ -610,7 +707,7 @@
       .messages-container {
         padding: 2rem 2.5rem;
       }
-      .message-input {
+      .message-input-wrapper {
         padding: 1.5rem 2.5rem;
       }
     }
@@ -667,7 +764,18 @@
             <div class="date-divider"><span>{{ msg.timestamp|date:"l, F j, Y" }}</span></div>
           {% endifchanged %}
           <div class="message {% if msg.sender == user %}own{% endif %}" id="msg-{{ msg.id }}">
-            {{ msg.content }}
+            {% if msg.message_type == 'voice' %}
+              <div class="voice-player" data-message-id="{{ msg.id }}">
+                <button class="play-btn" onclick="togglePlay(this, '{{ msg.voice_file.url }}')">▶</button>
+                <div class="progress-bar" onclick="seekAudio(event, '{{ msg.id }}')">
+                  <div class="progress-fill" id="progress-{{ msg.id }}"></div>
+                </div>
+                <span class="duration" id="duration-{{ msg.id }}">{{ msg.voice_duration }}s</span>
+                <audio id="audio-{{ msg.id }}" src="{{ msg.voice_file.url }}" preload="metadata"></audio>
+              </div>
+            {% else %}
+              {{ msg.content }}
+            {% endif %}
             <span class="msg-time">
               {{ msg.timestamp|date:"H:i" }}
               {% if msg.sender == user %}
@@ -676,11 +784,6 @@
                 </span>
               {% endif %}
             </span>
-            {% if msg.sender == user %}
-              <div class="msg-actions">
-                <button onclick="deleteMessage({{ msg.id }})" class="delete-btn" title="Delete">✕</button>
-              </div>
-            {% endif %}
           </div>
         {% empty %}
           <div class="empty-state">
@@ -695,38 +798,281 @@
       </div>
 
       <!-- Message Input -->
-      <form method="post" class="message-input" id="messageForm">
-        {% csrf_token %}
-        <input type="text" name="content" id="messageInput" placeholder="Type a message…" aria-label="Message input" required autocomplete="off">
-        <button type="submit" id="sendBtn">Send</button>
-      </form>
+      <div class="message-input-wrapper">
+        <div class="message-input" id="messageInputWrapper">
+          <input type="text" id="messageInput" placeholder="Type a message…" autocomplete="off">
+          <button class="btn-voice" id="recordBtn" title="Record voice message">
+            🎙️
+          </button>
+          <button class="btn-voice stop" id="stopRecordBtn" title="Stop recording">
+            ⏹️
+          </button>
+          <button class="btn-send" id="sendBtn">Send</button>
+        </div>
+
+        <!-- Voice Recording Preview -->
+        <div class="voice-preview" id="voicePreview">
+          <span class="preview-icon">🔊</span>
+          <div class="preview-progress">
+            <div class="preview-fill" id="recordingProgress"></div>
+          </div>
+          <span class="preview-time" id="recordDuration">0:00</span>
+          <button class="preview-cancel" id="cancelRecordBtn" title="Cancel recording">✕</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    // Auto-scroll to bottom
-    const container = document.getElementById('messageContainer');
+    // ============================================
+    // VOICE RECORDING FUNCTIONALITY
+    // ============================================
+
+    const recordBtn = document.getElementById('recordBtn');
+    const stopRecordBtn = document.getElementById('stopRecordBtn');
+    const voicePreview = document.getElementById('voicePreview');
+    const recordingProgress = document.getElementById('recordingProgress');
+    const recordDuration = document.getElementById('recordDuration');
+    const cancelRecordBtn = document.getElementById('cancelRecordBtn');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    const form = document.getElementById('messageForm');
+    const container = document.getElementById('messageContainer');
 
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingTimer = null;
+    let recordingSeconds = 0;
+    let isRecording = false;
+
+    // Auto-scroll to bottom
     function scrollToBottom() {
       container.scrollTop = container.scrollHeight;
     }
     scrollToBottom();
 
-    // Message input handling
+    // Send text message
+    function sendTextMessage() {
+      const content = messageInput.value.trim();
+      if (!content) return;
+      
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      
+      fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => {
+        if (response.ok) {
+          messageInput.value = '';
+          window.location.reload();
+        }
+      })
+      .catch(error => console.error('Error sending message:', error));
+    }
+
+    // Send voice message
+    function sendVoiceMessage(base64Audio, duration) {
+      const formData = new FormData();
+      formData.append('voice_data', base64Audio);
+      formData.append('voice_duration', duration);
+      formData.append('receiver_id', '{{ other_user.id }}');
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      
+      fetch('{% url "send_voice_message" %}', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.error('Error sending voice message:', data.error);
+          alert('Failed to send voice message. Please try again.');
+          return;
+        }
+        
+        // Add voice message to chat
+        addVoiceMessageToChat(data);
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to send voice message.');
+      });
+    }
+
+    function addVoiceMessageToChat(data) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message own';
+      msgDiv.id = `msg-${data.id}`;
+      
+      msgDiv.innerHTML = `
+        <div class="voice-player" data-message-id="${data.id}">
+          <button class="play-btn" onclick="togglePlay(this, '${data.file_url}')">▶</button>
+          <div class="progress-bar" onclick="seekAudio(event, '${data.id}')">
+            <div class="progress-fill" id="progress-${data.id}"></div>
+          </div>
+          <span class="duration" id="duration-${data.id}">${data.duration}s</span>
+          <audio id="audio-${data.id}" src="${data.file_url}" preload="metadata"></audio>
+        </div>
+        <span class="msg-time">${data.timestamp}</span>
+      `;
+      
+      container.appendChild(msgDiv);
+      scrollToBottom();
+    }
+
+    // Voice recording
+    recordBtn.addEventListener('click', startRecording);
+    stopRecordBtn.addEventListener('click', stopRecording);
+    cancelRecordBtn.addEventListener('click', cancelRecording);
+
+    function startRecording() {
+      if (isRecording) return;
+      
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          recordingSeconds = 0;
+          isRecording = true;
+          
+          mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+          };
+          
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onload = function() {
+              const base64Audio = reader.result;
+              sendVoiceMessage(base64Audio, recordingSeconds);
+            };
+            reader.readAsDataURL(audioBlob);
+            
+            stream.getTracks().forEach(track => track.stop());
+            isRecording = false;
+            recordBtn.style.display = 'flex';
+            stopRecordBtn.style.display = 'none';
+            voicePreview.classList.remove('active');
+            clearInterval(recordingTimer);
+          };
+          
+          mediaRecorder.start();
+          
+          // Update UI
+          recordBtn.style.display = 'none';
+          stopRecordBtn.style.display = 'flex';
+          voicePreview.classList.add('active');
+          recordingProgress.style.width = '0%';
+          recordDuration.textContent = '0:00';
+          
+          // Start timer
+          recordingTimer = setInterval(() => {
+            recordingSeconds++;
+            const minutes = Math.floor(recordingSeconds / 60);
+            const seconds = recordingSeconds % 60;
+            recordDuration.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Progress bar (max 60 seconds)
+            const progress = Math.min((recordingSeconds / 60) * 100, 100);
+            recordingProgress.style.width = `${progress}%`;
+            
+            // Auto-stop at 60 seconds
+            if (recordingSeconds >= 60) {
+              stopRecording();
+            }
+          }, 1000);
+        })
+        .catch(error => {
+          console.error('Error accessing microphone:', error);
+          alert('Unable to access microphone. Please allow microphone access.');
+          recordBtn.style.display = 'flex';
+          stopRecordBtn.style.display = 'none';
+        });
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+      clearInterval(recordingTimer);
+      isRecording = false;
+      recordBtn.style.display = 'flex';
+      stopRecordBtn.style.display = 'none';
+    }
+
+    function cancelRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
+      clearInterval(recordingTimer);
+      isRecording = false;
+      audioChunks = [];
+      recordBtn.style.display = 'flex';
+      stopRecordBtn.style.display = 'none';
+      voicePreview.classList.remove('active');
+    }
+
+    // Voice player functions
+    function togglePlay(button, audioUrl) {
+      const player = button.closest('.voice-player');
+      const audio = player.querySelector('audio');
+      const progressFill = player.querySelector('.progress-fill');
+      
+      if (audio.paused) {
+        // Pause any other playing audio
+        document.querySelectorAll('.voice-player audio').forEach(a => {
+          if (a !== audio && !a.paused) {
+            a.pause();
+            const otherBtn = a.closest('.voice-player').querySelector('.play-btn');
+            if (otherBtn) otherBtn.textContent = '▶';
+          }
+        });
+        
+        audio.play();
+        button.textContent = '⏸';
+        button.classList.add('playing');
+        
+        audio.addEventListener('timeupdate', function() {
+          const percent = (this.currentTime / this.duration) * 100;
+          progressFill.style.width = `${percent}%`;
+        });
+        
+        audio.addEventListener('ended', function() {
+          button.textContent = '▶';
+          button.classList.remove('playing');
+          progressFill.style.width = '0%';
+        });
+      } else {
+        audio.pause();
+        button.textContent = '▶';
+        button.classList.remove('playing');
+      }
+    }
+
+    function seekAudio(event, messageId) {
+      const progressBar = event.currentTarget;
+      const player = progressBar.closest('.voice-player');
+      const audio = player.querySelector('audio');
+      
+      if (audio.duration) {
+        const rect = progressBar.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        audio.currentTime = x * audio.duration;
+      }
+    }
+
+    // Send message on Enter key
     messageInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        form.submit();
+        sendTextMessage();
       }
     });
 
-    // Auto-resize input (optional)
-    messageInput.addEventListener('input', function() {
-      // Keep it simple - just send
-    });
+    sendBtn.addEventListener('click', sendTextMessage);
 
     // Delete message function
     function deleteMessage(messageId) {
@@ -757,47 +1103,63 @@
 
     // Poll for new messages
     let lastMessageId = {{ messages.last.id|default:0 }};
+    let isPolling = false;
     
     function pollNewMessages() {
+      if (isPolling) return;
+      isPolling = true;
+      
       fetch('{% url "get_new_messages" %}?last_id=' + lastMessageId)
         .then(response => response.json())
         .then(data => {
           if (data.messages && data.messages.length > 0) {
             data.messages.forEach(msg => {
-              // Check if message is for this conversation
-              if (msg.sender_id == {{ other_user.id }}) {
+              if (msg.sender_id == {{ other_user.id }} && msg.type == 'direct') {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'message';
                 msgDiv.id = `msg-${msg.id}`;
-                msgDiv.innerHTML = `
-                  ${msg.content}
-                  <span class="msg-time">${msg.timestamp}</span>
-                `;
+                
+                if (msg.content.type === 'voice') {
+                  msgDiv.innerHTML = `
+                    <div class="voice-player" data-message-id="${msg.id}">
+                      <button class="play-btn" onclick="togglePlay(this, '${msg.content.file_url}')">▶</button>
+                      <div class="progress-bar" onclick="seekAudio(event, '${msg.id}')">
+                        <div class="progress-fill" id="progress-${msg.id}"></div>
+                      </div>
+                      <span class="duration" id="duration-${msg.id}">${msg.content.duration}s</span>
+                      <audio id="audio-${msg.id}" src="${msg.content.file_url}" preload="metadata"></audio>
+                    </div>
+                    <span class="msg-time">${msg.timestamp}</span>
+                  `;
+                } else {
+                  msgDiv.innerHTML = `
+                    ${msg.content.content}
+                    <span class="msg-time">${msg.timestamp}</span>
+                  `;
+                }
+                
                 container.appendChild(msgDiv);
                 lastMessageId = msg.id;
               }
             });
             scrollToBottom();
           }
+          isPolling = false;
         })
-        .catch(error => console.error('Error polling messages:', error));
+        .catch(error => {
+          console.error('Error polling messages:', error);
+          isPolling = false;
+        });
     }
     
-    // Poll every 3 seconds
-    const pollInterval = setInterval(pollNewMessages, 3000);
+    // Poll every 2 seconds
+    const pollInterval = setInterval(pollNewMessages, 2000);
 
-    // Typing indicator simulation (optional)
-    let typingTimeout = null;
-    messageInput.addEventListener('input', function() {
-      // Could implement WebSocket or AJAX typing indicators here
-      // For now, just a simple visual feedback
-      const typingIndicator = document.getElementById('typingIndicator');
-      typingIndicator.classList.add('active');
-      
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        typingIndicator.classList.remove('active');
-      }, 2000);
+    // Also poll when the page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        pollNewMessages();
+      }
     });
 
     // Stop polling when leaving page
@@ -809,6 +1171,35 @@
     messageInput.addEventListener('focus', function() {
       setTimeout(scrollToBottom, 100);
     });
+
+    // Add date divider CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      .date-divider {
+        text-align: center;
+        padding: 0.5rem;
+        color: #6a7693;
+        font-size: 0.8rem;
+        font-style: italic;
+        position: relative;
+      }
+      .date-divider span {
+        background: #161731;
+        padding: 0 1rem;
+        position: relative;
+        z-index: 1;
+      }
+      .date-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>

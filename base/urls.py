@@ -28,4 +28,5 @@ urlpatterns = [
     path('groups/<int:group_id>/leave/', leave_group, name='leave_group'),
     path('groups/<int:group_id>/transfer-admin/<int:user_id>/', transfer_admin, name='transfer_admin'),
     path('settings/update-status/', update_status_view, name='update_status'),
+    path('send-voice-message/', send_voice_message_ajax, name='send_voice_message'),
 ]
