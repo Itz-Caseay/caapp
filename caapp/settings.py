@@ -75,6 +75,7 @@ WSGI_APPLICATION = 'caapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 # Use PostgreSQL on Render, SQLite locally
+# Database
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(
