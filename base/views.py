@@ -777,13 +777,45 @@ import uuid
 
 @login_required(login_url='login')
 def index(request):
+    """Dashboard view with WhatsApp-style data"""
     user = request.user
     profile = UserProfile.objects.filter(user=user).first()
     
-    recent_messages = Message.objects.filter(
-        Q(sender=user) | Q(receiver=user) | Q(group__members=user)
-    ).order_by('-timestamp')[:10]
+    # Get conversations (same as messages)
+    contacts = Contact.objects.filter(user=user).select_related('contact')
+    conversations = []
+    for contact_rel in contacts:
+        contact = contact_rel.contact
+        last_msg = Message.objects.filter(
+            (Q(sender=user, receiver=contact) | Q(sender=contact, receiver=user))
+        ).order_by('-timestamp').first()
+        unread_count = Message.objects.filter(
+            sender=contact, receiver=user, is_read=False
+        ).count()
+        prof = UserProfile.objects.filter(user=contact).first()
+        conversations.append({
+            'contact': contact,
+            'last_message': last_msg,
+            'unread_count': unread_count,
+            'is_online': prof.online_status if prof else False,
+            'profile_pic': prof.profile_pic.url if prof and prof.profile_pic else None,
+        })
+    conversations.sort(
+        key=lambda x: x['last_message'].timestamp if x['last_message'] else timezone.datetime.min,
+        reverse=True
+    )
     
+    # Group conversations
+    groups = user.chat_groups.all()
+    group_conversations = []
+    for group in groups:
+        last_msg = group.messages.order_by('-timestamp').first()
+        group_conversations.append({
+            'group': group,
+            'last_message': last_msg,
+        })
+    
+    # Stats
     contacts_count = Contact.objects.filter(user=user).count()
     groups_count = user.chat_groups.count()
     unread_count = Message.objects.filter(
@@ -791,7 +823,8 @@ def index(request):
     ).exclude(sender=user).count()
     
     context = {
-        'recent_messages': recent_messages,
+        'conversations': conversations,
+        'group_conversations': group_conversations,
         'contacts_count': contacts_count,
         'groups_count': groups_count,
         'unread_count': unread_count,
@@ -799,7 +832,6 @@ def index(request):
         'profile': profile,
     }
     return render(request, 'dashboard.html', context)
-
 def login_user(request):
     if request.method == "POST":
         username = request.POST.get('username')
