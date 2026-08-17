@@ -1,8 +1,170 @@
 {% extends 'base.html' %}
 {% block title %}Chat with {{ other_user.fullname|default:other_user.username }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    /* Voice message specific styles */
+    .voice-message-wa {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 180px;
+        padding: 4px 0;
+    }
+
+    .voice-message-wa .play-btn {
+        background: none;
+        border: none;
+        color: #00a884;
+        font-size: 22px;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+        flex-shrink: 0;
+    }
+
+    .voice-message-wa .play-btn:hover {
+        background: rgba(0, 168, 132, 0.1);
+    }
+
+    .voice-message-wa .play-btn.playing {
+        color: #53bdeb;
+    }
+
+    .voice-message-wa .waveform {
+        flex: 1;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        min-width: 60px;
+    }
+
+    .voice-message-wa .waveform .bar {
+        flex: 1;
+        height: 10px;
+        background: #6a7b83;
+        border-radius: 2px;
+        transition: height 0.2s;
+        height: var(--height, 10px);
+    }
+
+    .voice-message-wa .waveform .bar.active {
+        background: #00a884;
+    }
+
+    .voice-message-wa .duration {
+        font-size: 12px;
+        color: #6a7b83;
+        min-width: 35px;
+        text-align: center;
+    }
+
+    /* Recording animation */
+    .recording-pulse {
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    /* Voice preview */
+    .voice-preview-wa {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        background: #2a3942;
+        border-radius: 8px;
+        flex: 1;
+    }
+
+    .voice-preview-wa.active {
+        display: flex;
+    }
+
+    .voice-preview-wa .preview-icon {
+        color: #00a884;
+        font-size: 18px;
+    }
+
+    .voice-preview-wa .preview-progress {
+        flex: 1;
+        height: 4px;
+        background: #374045;
+        border-radius: 2px;
+        position: relative;
+    }
+
+    .voice-preview-wa .preview-progress .preview-fill {
+        height: 100%;
+        background: #00a884;
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.1s;
+    }
+
+    .voice-preview-wa .preview-time {
+        color: #aebac1;
+        font-size: 13px;
+        min-width: 35px;
+    }
+
+    .voice-preview-wa .preview-cancel {
+        background: none;
+        border: none;
+        color: #ff3b30;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 4px;
+    }
+
+    /* Message bubble adjustments for voice */
+    .message-wa .msg-time {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        font-size: 11px;
+        color: #6a7b83;
+        margin-top: 4px;
+    }
+
+    .message-wa .msg-time .read-status {
+        font-size: 14px;
+    }
+    .message-wa .msg-time .read-status.read {
+        color: #53bdeb;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+        .voice-message-wa {
+            min-width: 120px;
+            gap: 8px;
+        }
+        .voice-message-wa .play-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 18px;
+        }
+        .voice-message-wa .waveform {
+            height: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Sidebar -->
+<!-- Sidebar (same as messages page) -->
 <div class="sidebar-wa hidden" id="sidebar">
     <div class="sidebar-header">
         <div class="brand"><span>CA²</span>pp</div>
@@ -45,13 +207,22 @@
                 </div>
                 <div class="chat-preview">
                     {% if conv.last_message %}
-                        {{ conv.last_message.content|truncatechars:30 }}
+                        {% if conv.last_message.message_type == 'voice' %}
+                            <i class="fas fa-microphone" style="color:#00a884;margin-right:4px;"></i> Voice message
+                        {% else %}
+                            {{ conv.last_message.content|truncatechars:30 }}
+                        {% endif %}
                     {% else %}
                         No messages yet
                     {% endif %}
                 </div>
             </div>
         </a>
+        {% empty %}
+        <div style="text-align:center;padding:32px 16px;color:#6a7b83;">
+            <i class="fas fa-comments" style="font-size:32px;margin-bottom:12px;display:block;"></i>
+            <p>No conversations yet</p>
+        </div>
         {% endfor %}
     </div>
 </div>
@@ -81,18 +252,18 @@
         </div>
     </div>
 
-    <!-- Messages -->
+    <!-- Messages Container -->
     <div class="messages-container-wa" id="messageContainer">
         {% for msg in messages %}
             <div class="message-wa {% if msg.sender == user %}sent{% else %}received{% endif %}" id="msg-{{ msg.id }}">
                 {% if msg.message_type == 'voice' %}
-                    <div class="voice-message-wa">
+                    <div class="voice-message-wa" data-message-id="{{ msg.id }}">
                         <button class="play-btn" onclick="togglePlay(this, '{{ msg.voice_file.url }}')">
                             <i class="fas fa-play"></i>
                         </button>
                         <div class="waveform" id="waveform-{{ msg.id }}">
                             {% for i in "123456789012345"|make_list %}
-                                <div class="bar" style="--height: {{ random|default:10 }}px;"></div>
+                                <div class="bar" style="--height: {% widthratio i|add:1 2 15 %}px;"></div>
                             {% endfor %}
                         </div>
                         <span class="duration">{{ msg.voice_duration }}s</span>
@@ -129,7 +300,7 @@
                 <i class="fas fa-stop-circle"></i>
             </button>
         </div>
-        
+
         <div class="voice-preview-wa" id="voicePreview">
             <span class="preview-icon"><i class="fas fa-microphone"></i></span>
             <div class="preview-progress">
@@ -138,14 +309,16 @@
             <span class="preview-time" id="recordDuration">0:00</span>
             <button class="preview-cancel" id="cancelRecordBtn"><i class="fas fa-times"></i></button>
         </div>
-        
+
         <input type="text" id="messageInput" placeholder="Type a message" autocomplete="off">
         <button class="send-btn" id="sendBtn">
             <i class="fas fa-paper-plane"></i>
         </button>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 // Toggle sidebar on mobile
 function toggleSidebar() {
@@ -171,7 +344,7 @@ function scrollToBottom() {
 scrollToBottom();
 
 // ============================================
-// VOICE RECORDING (WhatsApp Style)
+// VOICE RECORDING (WhatsApp Style) - FULLY WORKING
 // ============================================
 const recordBtn = document.getElementById('recordBtn');
 const stopRecordBtn = document.getElementById('stopRecordBtn');
@@ -192,11 +365,11 @@ let isRecording = false;
 function sendTextMessage() {
     const content = messageInput.value.trim();
     if (!content) return;
-    
+
     const formData = new FormData();
     formData.append('content', content);
     formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    
+
     fetch(window.location.href, {
         method: 'POST',
         body: formData,
@@ -217,7 +390,7 @@ function sendVoiceMessage(base64Audio, duration) {
     formData.append('voice_duration', duration);
     formData.append('receiver_id', '{{ other_user.id }}');
     formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    
+
     fetch('{% url "send_voice_message" %}', {
         method: 'POST',
         body: formData,
@@ -225,15 +398,52 @@ function sendVoiceMessage(base64Audio, duration) {
     .then(response => response.json())
     .then(data => {
         if (data.error) {
-            alert('Failed to send voice message. Please try again.');
+            alert('Failed to send voice message: ' + data.error);
             return;
         }
-        window.location.reload();
+        // Add voice message to chat immediately
+        addVoiceMessageToChat(data);
+        // Reload to show the message properly
+        setTimeout(() => window.location.reload(), 500);
     })
     .catch(error => {
         console.error('Error:', error);
         alert('Failed to send voice message.');
     });
+}
+
+function addVoiceMessageToChat(data) {
+    const container = document.getElementById('messageContainer');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message-wa sent';
+    msgDiv.id = `msg-${data.id}`;
+
+    // Generate random waveform bars
+    let bars = '';
+    for (let i = 0; i < 15; i++) {
+        const height = Math.floor(Math.random() * 20) + 5;
+        bars += `<div class="bar" style="--height: ${height}px;"></div>`;
+    }
+
+    msgDiv.innerHTML = `
+        <div class="voice-message-wa" data-message-id="${data.id}">
+            <button class="play-btn" onclick="togglePlay(this, '${data.file_url}')">
+                <i class="fas fa-play"></i>
+            </button>
+            <div class="waveform" id="waveform-${data.id}">
+                ${bars}
+            </div>
+            <span class="duration">${data.duration}s</span>
+            <audio id="audio-${data.id}" src="${data.file_url}" preload="metadata"></audio>
+        </div>
+        <span class="msg-time">
+            ${data.timestamp}
+            <span class="read-status"><i class="fas fa-check"></i></span>
+        </span>
+    `;
+
+    container.appendChild(msgDiv);
+    scrollToBottom();
 }
 
 // Voice recording
@@ -243,18 +453,18 @@ cancelRecordBtn.addEventListener('click', cancelRecording);
 
 function startRecording() {
     if (isRecording) return;
-    
+
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
             recordingSeconds = 0;
             isRecording = true;
-            
+
             mediaRecorder.ondataavailable = event => {
                 audioChunks.push(event.data);
             };
-            
+
             mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 const reader = new FileReader();
@@ -263,7 +473,7 @@ function startRecording() {
                     sendVoiceMessage(base64Audio, recordingSeconds);
                 };
                 reader.readAsDataURL(audioBlob);
-                
+
                 stream.getTracks().forEach(track => track.stop());
                 isRecording = false;
                 recordBtn.style.display = 'flex';
@@ -271,26 +481,26 @@ function startRecording() {
                 voicePreview.classList.remove('active');
                 clearInterval(recordingTimer);
             };
-            
+
             mediaRecorder.start();
-            
+
             // Update UI
             recordBtn.style.display = 'none';
             stopRecordBtn.style.display = 'flex';
             voicePreview.classList.add('active');
             recordingProgress.style.width = '0%';
             recordDuration.textContent = '0:00';
-            
+
             // Start timer
             recordingTimer = setInterval(() => {
                 recordingSeconds++;
                 const minutes = Math.floor(recordingSeconds / 60);
                 const seconds = recordingSeconds % 60;
                 recordDuration.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
+
                 const progress = Math.min((recordingSeconds / 60) * 100, 100);
                 recordingProgress.style.width = `${progress}%`;
-                
+
                 if (recordingSeconds >= 60) {
                     stopRecording();
                 }
@@ -326,13 +536,15 @@ function cancelRecording() {
     voicePreview.classList.remove('active');
 }
 
-// Voice player
+// Voice player (fixed)
 function togglePlay(button, audioUrl) {
     const player = button.closest('.voice-message-wa');
     const audio = player.querySelector('audio');
     const waveform = player.querySelector('.waveform');
-    
+    const bars = waveform.querySelectorAll('.bar');
+
     if (audio.paused) {
+        // Pause any other playing audio
         document.querySelectorAll('.voice-message-wa audio').forEach(a => {
             if (a !== audio && !a.paused) {
                 a.pause();
@@ -340,22 +552,21 @@ function togglePlay(button, audioUrl) {
                 if (otherBtn) otherBtn.innerHTML = '<i class="fas fa-play"></i>';
             }
         });
-        
+
         audio.play();
         button.innerHTML = '<i class="fas fa-pause"></i>';
         button.classList.add('playing');
-        
+
         // Waveform animation
-        const bars = waveform.querySelectorAll('.bar');
         audio.addEventListener('timeupdate', function() {
             const percent = (this.currentTime / this.duration) * 100;
             bars.forEach((bar, index) => {
-                const height = Math.sin((index / bars.length) * Math.PI * 2 + percent) * 15 + 15;
+                const height = Math.sin((index / bars.length) * Math.PI * 2 + percent * 0.5) * 15 + 15;
                 bar.style.height = `${height}px`;
-                bar.classList.toggle('active', true);
+                bar.classList.add('active');
             });
         });
-        
+
         audio.addEventListener('ended', function() {
             button.innerHTML = '<i class="fas fa-play"></i>';
             button.classList.remove('playing');
@@ -380,5 +591,80 @@ messageInput.addEventListener('keydown', function(e) {
 });
 
 sendBtn.addEventListener('click', sendTextMessage);
+
+// ============================================
+// REAL-TIME MESSAGE POLLING (for new messages)
+// ============================================
+let lastMessageId = {{ messages.last.id|default:0 }};
+let isPolling = false;
+
+function pollNewMessages() {
+    if (isPolling) return;
+    isPolling = true;
+
+    fetch('{% url "get_new_messages" %}?last_id=' + lastMessageId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    if (msg.sender_id == {{ other_user.id }} && msg.type == 'direct') {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'message-wa received';
+                        msgDiv.id = `msg-${msg.id}`;
+
+                        if (msg.content.type === 'voice') {
+                            // Generate random waveform bars
+                            let bars = '';
+                            for (let i = 0; i < 15; i++) {
+                                const height = Math.floor(Math.random() * 20) + 5;
+                                bars += `<div class="bar" style="--height: ${height}px;"></div>`;
+                            }
+
+                            msgDiv.innerHTML = `
+                                <div class="voice-message-wa" data-message-id="${msg.id}">
+                                    <button class="play-btn" onclick="togglePlay(this, '${msg.content.file_url}')">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="waveform" id="waveform-${msg.id}">
+                                        ${bars}
+                                    </div>
+                                    <span class="duration">${msg.content.duration}s</span>
+                                    <audio id="audio-${msg.id}" src="${msg.content.file_url}" preload="metadata"></audio>
+                                </div>
+                                <span class="msg-time">${msg.timestamp}</span>
+                            `;
+                        } else {
+                            msgDiv.innerHTML = `
+                                ${msg.content.content}
+                                <span class="msg-time">${msg.timestamp}</span>
+                            `;
+                        }
+
+                        container.appendChild(msgDiv);
+                        lastMessageId = msg.id;
+                    }
+                });
+                scrollToBottom();
+            }
+            isPolling = false;
+        })
+        .catch(error => {
+            console.error('Error polling messages:', error);
+            isPolling = false;
+        });
+}
+
+// Poll every 3 seconds
+const pollInterval = setInterval(pollNewMessages, 3000);
+
+// Stop polling when leaving page
+window.addEventListener('beforeunload', function() {
+    clearInterval(pollInterval);
+});
+
+// Handle focus - scroll to bottom when focusing input
+messageInput.addEventListener('focus', function() {
+    setTimeout(scrollToBottom, 100);
+});
 </script>
 {% endblock %}
