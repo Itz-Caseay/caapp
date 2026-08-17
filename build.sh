@@ -26,6 +26,6 @@ python manage.py collectstatic --no-input
 
 echo "=== Running migrations ==="
 python manage.py makemigrations --no-input
-python manage.py migrate --no-input
+python manage.py migrate base --fake
 
 echo "=== Build complete ==="
