@@ -1,683 +1,152 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>CA²pp · Dashboard</title>
-  <style>
-    /* ———— classic reset & base ———— */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: #161731;    /* deep navy */
-      color: #f0f2f5;
-      font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ———— dashboard wrapper ———— */
-    .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      width: 100%;
-      min-height: 100vh;
-    }
-
-    /* ———— sidebar ———— */
-    .sidebar {
-      flex: 0 0 220px;            /* fixed width on large screens */
-      background: #1a1b33;
-      padding: 2rem 1.2rem;
-      border-right: 1px solid rgba(255, 255, 255, 0.04);
-      display: flex;
-      flex-direction: column;
-      gap: 2.5rem;
-      min-height: 100vh;
-    }
-
-    .sidebar-brand {
-      font-size: 2rem;
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      font-family: 'Garamond', 'Times New Roman', serif;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding-bottom: 1rem;
-    }
-
-    .sidebar-brand span {
-      color: #b0c7e7;   /* classic sky-blue */
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .sidebar-nav a {
-      color: #b8c4dd;
-      text-decoration: none;
-      padding: 0.6rem 0.8rem;
-      border-radius: 40px;
-      transition: background 0.2s, color 0.2s, padding-left 0.2s;
-      font-size: 1.05rem;
-      letter-spacing: 0.04em;
-      border: 1px solid transparent;
-      font-family: 'Garamond', 'Times New Roman', serif;
-    }
-
-    .sidebar-nav a:hover,
-    .sidebar-nav a.active {
-      background: rgba(176, 199, 231, 0.08);
-      color: #d6e2f5;
-      border-color: rgba(176, 199, 231, 0.15);
-      padding-left: 1.2rem;
-    }
-
-    .sidebar-nav a.active {
-      background: rgba(176, 199, 231, 0.12);
-      border-color: #b0c7e7;
-      color: #e8edf7;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      font-size: 0.9rem;
-      color: #7a86a3;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-      padding-top: 1.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .sidebar-footer a {
-      color: #a6b7d9;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .sidebar-footer a:hover {
-      color: #c2d6f0;
-    }
-
-    /* ———— main content ———— */
-    .main {
-      flex: 1;
-      padding: 2rem 2.5rem;
-      background: #161731;
-      min-height: 100vh;
-    }
-
-    /* header */
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      padding-bottom: 1.2rem;
-      margin-bottom: 2rem;
-    }
-
-    .main-header h1 {
-      font-size: 2rem;
-      font-weight: 400;
-      letter-spacing: 0.04em;
-      font-family: 'Garamond', 'Times New Roman', serif;
-    }
-
-    .main-header .user-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 0.4rem 1rem 0.4rem 0.8rem;
-      border-radius: 60px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      text-decoration: none;
-      color: inherit;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .main-header .user-badge:hover {
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .user-badge .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #b0c7e7;
-      color: #161731;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 1rem;
-      font-family: 'Garamond', serif;
-      overflow: hidden;
-    }
-
-    .user-badge .avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .user-badge .username {
-      font-size: 1rem;
-      color: #cfd8e8;
-    }
-
-    /* dashboard cards grid */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .stat-card {
-      background: #1e1f3a;
-      padding: 1.4rem 1.6rem;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transition: transform 0.15s, border-color 0.2s;
-    }
-
-    .stat-card:hover {
-      border-color: rgba(176, 199, 231, 0.2);
-      transform: translateY(-2px);
-    }
-
-    .stat-card .stat-label {
-      font-size: 0.9rem;
-      color: #8f9bb5;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-style: italic;
-    }
-
-    .stat-card .stat-value {
-      font-size: 2.2rem;
-      font-weight: 400;
-      margin-top: 0.2rem;
-      color: #e8edf7;
-      font-family: 'Garamond', serif;
-    }
-
-    .stat-card .stat-value span {
-      color: #b0c7e7;
-    }
-
-    /* recent chats & activity */
-    .section-title {
-      font-size: 1.4rem;
-      font-weight: 400;
-      letter-spacing: 0.04em;
-      margin-bottom: 1rem;
-      border-left: 3px solid #b0c7e7;
-      padding-left: 0.8rem;
-      font-family: 'Garamond', serif;
-    }
-
-    .chat-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .chat-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      background: #1a1b33;
-      padding: 0.8rem 1.2rem;
-      border-radius: 60px;
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      transition: background 0.2s, border-color 0.2s;
-      text-decoration: none;
-      color: inherit;
-      cursor: pointer;
-    }
-
-    .chat-item:hover {
-      background: #1e1f3a;
-      border-color: rgba(176, 199, 231, 0.1);
-    }
-
-    .chat-item .chat-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #2c2e50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      color: #b0c7e7;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-      font-family: 'Garamond', serif;
-      overflow: hidden;
-    }
-
-    .chat-item .chat-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .chat-item .chat-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .chat-item .chat-name {
-      font-size: 1.05rem;
-      color: #e8edf7;
-    }
-
-    .chat-item .chat-preview {
-      font-size: 0.9rem;
-      color: #8f9bb5;
-      font-style: italic;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 180px;
-    }
-
-    .chat-item .chat-time {
-      font-size: 0.8rem;
-      color: #6a7693;
-      flex-shrink: 0;
-    }
-
-    .chat-item .unread-badge {
-      background: #b0c7e7;
-      color: #161731;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.1rem 0.5rem;
-      border-radius: 30px;
-      min-width: 20px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    /* quick actions / status */
-    .status-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .status-badge {
-      background: #1e1f3a;
-      padding: 0.5rem 1.2rem;
-      border-radius: 60px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      font-size: 0.95rem;
-      color: #b8c4dd;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .status-badge:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(176, 199, 231, 0.1);
-    }
-
-    .status-badge .dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #6fcf97;
-    }
-
-    .status-badge .dot.offline {
-      background: #7a86a3;
-    }
-
-    /* ———— empty state ———— */
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: #8f9bb5;
-    }
-
-    .empty-state .icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    /* ———— responsive ———— */
-
-    @media (max-width: 820px) {
-      .sidebar {
-        flex: 0 0 100%;
-        min-height: auto;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        gap: 1rem;
-      }
-
-      .sidebar-brand {
-        border-bottom: none;
-        padding-bottom: 0;
-        font-size: 1.8rem;
-      }
-
-      .sidebar-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.3rem;
-      }
-
-      .sidebar-nav a {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.95rem;
-      }
-
-      .sidebar-footer {
-        display: none;
-      }
-
-      .main {
-        padding: 1.5rem;
-      }
-
-      .main-header h1 {
-        font-size: 1.6rem;
-      }
-
-      .chat-item .chat-preview {
-        max-width: 120px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .sidebar {
-        padding: 0.8rem 1rem;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.6rem;
-      }
-
-      .sidebar-brand {
-        font-size: 1.6rem;
-        text-align: center;
-      }
-
-      .sidebar-nav {
-        justify-content: center;
-      }
-
-      .sidebar-nav a {
-        font-size: 0.9rem;
-        padding: 0.3rem 0.7rem;
-      }
-
-      .main {
-        padding: 1rem 1rem 2rem;
-      }
-
-      .main-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.8rem;
-      }
-
-      .main-header h1 {
-        font-size: 1.4rem;
-        text-align: center;
-      }
-
-      .user-badge {
-        align-self: center;
-      }
-
-      .card-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.8rem;
-      }
-
-      .stat-card {
-        padding: 1rem;
-      }
-
-      .stat-card .stat-value {
-        font-size: 1.6rem;
-      }
-
-      .chat-item {
-        padding: 0.6rem 1rem;
-        border-radius: 40px;
-      }
-
-      .chat-item .chat-preview {
-        max-width: 80px;
-        font-size: 0.8rem;
-      }
-
-      .chat-item .chat-name {
-        font-size: 0.95rem;
-      }
-
-      .status-row {
-        justify-content: center;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .card-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* landscape phones */
-    @media (max-height: 600px) and (orientation: landscape) {
-      .sidebar {
-        flex: 0 0 180px;
-        min-height: 100vh;
-        flex-direction: column;
-        padding: 1.2rem;
-        border-right: 1px solid rgba(255, 255, 255, 0.04);
-        border-bottom: none;
-      }
-
-      .sidebar-brand {
-        font-size: 1.4rem;
-        padding-bottom: 0.6rem;
-      }
-
-      .sidebar-nav a {
-        font-size: 0.85rem;
-        padding: 0.3rem 0.6rem;
-      }
-
-      .sidebar-footer {
-        display: flex;
-        font-size: 0.75rem;
-      }
-
-      .main {
-        padding: 1.2rem;
-      }
-
-      .main-header h1 {
-        font-size: 1.4rem;
-      }
-
-      .stat-card .stat-value {
-        font-size: 1.6rem;
-      }
-    }
-
-    @media (min-width: 1400px) {
-      .sidebar {
-        flex: 0 0 260px;
-      }
-      .main {
-        padding: 2.5rem 3.5rem;
-      }
-      .card-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="dashboard">
-
-    <!-- sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-brand"><span>CA²</span>pp</div>
-      <nav class="sidebar-nav">
-        <a href="{% url 'index' %}" class="active">Dashboard</a>
-        <a href="{% url 'messages' %}">Messages</a>
-        <a href="{% url 'contacts' %}">Contacts</a>
-        <a href="{% url 'groups' %}">Groups</a>
-        <a href="{% url 'settings' %}">Settings</a>
-      </nav>
-      <div class="sidebar-footer">
-        <a href="{% url 'settings' %}">Profile</a>
-        <a href="{% url 'logout' %}">Logout</a>
-        <span style="color:#5a6685; font-size:0.8rem;">v1.0 · classic</span>
-      </div>
-    </aside>
-
-    <!-- main content -->
-    <main class="main">
-      <!-- header -->
-      <div class="main-header">
-        <h1>Dashboard</h1>
-        <a href="{% url 'settings' %}" class="user-badge">
-          <div class="avatar">
-            {% if profile and profile.profile_pic %}
-              <img src="{{ profile.profile_pic.url }}" alt="{{ user.fullname|default:user.username }}">
-            {% else %}
-              {{ user.get_avatar_initials }}
-            {% endif %}
-          </div>
-          <span class="username">{{ user.fullname|default:user.username }}</span>
-        </a>
-      </div>
-
-      <!-- stats cards -->
-      <div class="card-grid">
-        <div class="stat-card">
-          <div class="stat-label">Messages</div>
-          <div class="stat-value">{{ unread_count|default:0 }} <span>↑</span></div>
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Sidebar -->
+<div class="sidebar-wa" id="sidebar">
+    <div class="sidebar-header">
+        <div class="brand"><span>CA²</span>pp</div>
+        <div class="header-actions">
+            <button onclick="window.location.href='{% url 'contacts' %}'" title="New chat">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button onclick="window.location.href='{% url 'settings' %}'" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Contacts</div>
-          <div class="stat-value">{{ contacts_count|default:0 }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Active chats</div>
-          <div class="stat-value">{{ recent_messages|length|default:0 }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Groups</div>
-          <div class="stat-value">{{ groups_count|default:0 }}</div>
-        </div>
-      </div>
+    </div>
 
-      <!-- recent chats -->
-      <div class="section-title">Recent conversations</div>
-      <div class="chat-list">
-        {% for msg in recent_messages %}
-          <a href="
-            {% if msg.receiver and msg.sender == user %}
-              {% url 'chat_detail' user_id=msg.receiver.id %}
-            {% elif msg.sender and msg.receiver == user %}
-              {% url 'chat_detail' user_id=msg.sender.id %}
-            {% elif msg.group %}
-              {% url 'group_detail' group_id=msg.group.id %}
-            {% else %}
-              {% url 'messages' %}
-            {% endif %}
-          " class="chat-item">
+    <div class="search-bar">
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchChats" placeholder="Search or start new chat" onkeyup="filterChats()">
+        </div>
+    </div>
+
+    <!-- Quick Stats (WhatsApp-style minimalist) -->
+    <div style="display:flex;gap:8px;padding:8px 16px;background:#1f2c33;margin:4px 8px;border-radius:8px;">
+        <div style="flex:1;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#00a884;">{{ unread_count|default:0 }}</div>
+            <div style="font-size:11px;color:#6a7b83;">Unread</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#e9edef;">{{ contacts_count|default:0 }}</div>
+            <div style="font-size:11px;color:#6a7b83;">Contacts</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#e9edef;">{{ groups_count|default:0 }}</div>
+            <div style="font-size:11px;color:#6a7b83;">Groups</div>
+        </div>
+    </div>
+
+    <div class="chat-list" id="chatList">
+        {% for conv in conversations %}
+        <a href="{% url 'chat_detail' user_id=conv.contact.id %}" class="chat-item {% if conv.unread_count > 0 %}active{% endif %}">
             <div class="chat-avatar">
-              {% if msg.sender == user %}
-                {% if msg.receiver %}
-                  {{ msg.receiver.get_avatar_initials }}
+                {% if conv.profile_pic %}
+                    <img src="{{ conv.profile_pic }}" alt="{{ conv.contact.fullname }}">
                 {% else %}
-                  U
+                    {{ conv.contact.get_avatar_initials }}
                 {% endif %}
-              {% else %}
-                {{ msg.sender.get_avatar_initials }}
-              {% endif %}
+                {% if conv.is_online %}
+                    <div class="online-dot"></div>
+                {% endif %}
             </div>
             <div class="chat-info">
-              <div class="chat-name">
-                {% if msg.sender == user %}
-                  {% if msg.receiver %}
-                    {{ msg.receiver.fullname|default:msg.receiver.username }}
-                  {% else %}
-                    Unknown
-                  {% endif %}
-                {% else %}
-                  {{ msg.sender.fullname|default:msg.sender.username }}
-                {% endif %}
-                {% if msg.group %}
-                  <span style="color:#6a7693; font-size:0.8rem;">({{ msg.group.name }})</span>
-                {% endif %}
-              </div>
-              <div class="chat-preview">{{ msg.content|truncatechars:40 }}</div>
+                <div class="chat-name">
+                    {{ conv.contact.fullname|default:conv.contact.username }}
+                    {% if conv.last_message %}
+                        <span class="time">{{ conv.last_message.timestamp|date:"H:i" }}</span>
+                    {% endif %}
+                </div>
+                <div class="chat-preview">
+                    <span>
+                        {% if conv.last_message %}
+                            {% if conv.last_message.message_type == 'voice' %}
+                                <i class="fas fa-microphone" style="color:#00a884;margin-right:4px;"></i> Voice message
+                            {% else %}
+                                {{ conv.last_message.content|truncatechars:30 }}
+                            {% endif %}
+                        {% else %}
+                            No messages yet
+                        {% endif %}
+                    </span>
+                    {% if conv.unread_count > 0 %}
+                        <span class="unread-count">{{ conv.unread_count }}</span>
+                    {% endif %}
+                </div>
             </div>
-            <span class="chat-time">{{ msg.timestamp|date:"H:i" }}</span>
-            {% if msg.receiver == user and not msg.is_read %}
-              <span class="unread-badge">New</span>
-            {% endif %}
-          </a>
+        </a>
         {% empty %}
-          <div class="empty-state">
-            <div class="icon">💬</div>
-            <p>No conversations yet.</p>
-            <p style="font-size:0.85rem; color:#6a7693;">Start messaging your contacts!</p>
-          </div>
+        <div style="text-align:center;padding:32px 16px;color:#6a7b83;">
+            <i class="fas fa-comments" style="font-size:32px;margin-bottom:12px;display:block;"></i>
+            <p>No conversations yet</p>
+            <p style="font-size:13px;">Start a new chat by finding a contact</p>
+        </div>
         {% endfor %}
-      </div>
 
-      <!-- status & quick actions -->
-      <div class="status-row">
-        <span class="status-badge">
-          <span class="dot {% if not profile.online_status %}offline{% endif %}"></span> 
-          {% if profile.online_status %}Online{% else %}Offline{% endif %}
-        </span>
-        <a href="{% url 'messages' %}" class="status-badge">✎ New message</a>
-        <a href="{% url 'contacts' %}" class="status-badge">👤 Contacts</a>
-        <a href="{% url 'groups' %}" class="status-badge">👥 Groups</a>
-      </div>
-    </main>
-  </div>
-</body>
-</html>
+        {% if group_conversations %}
+        <div style="padding:12px 16px 8px;color:#6a7b83;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;border-top:1px solid #2a3942;margin-top:8px;">
+            Groups
+        </div>
+        {% for gconv in group_conversations %}
+        <a href="{% url 'group_detail' group_id=gconv.group.id %}" class="chat-item">
+            <div class="chat-avatar" style="background:#2a3942;">
+                {% if gconv.group.profile_pic %}
+                    <img src="{{ gconv.group.profile_pic.url }}" alt="{{ gconv.group.name }}">
+                {% else %}
+                    {{ gconv.group.name|make_list|first|upper }}
+                {% endif %}
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">
+                    {{ gconv.group.name }}
+                    {% if gconv.last_message %}
+                        <span class="time">{{ gconv.last_message.timestamp|date:"H:i" }}</span>
+                    {% endif %}
+                </div>
+                <div class="chat-preview">
+                    {% if gconv.last_message %}
+                        {{ gconv.last_message.content|truncatechars:30 }}
+                    {% else %}
+                        No messages yet
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Chat Area (Placeholder) -->
+<div class="chat-area">
+    <div class="empty-state-wa">
+        <div class="icon"><i class="fas fa-comment-dots"></i></div>
+        <h3>Welcome to CA²pp</h3>
+        <p>Select a conversation to start chatting, or find someone to connect with.</p>
+        <br>
+        <a href="{% url 'contacts' %}" style="color:#00a884;text-decoration:none;font-weight:500;">
+            <i class="fas fa-plus"></i> New conversation
+        </a>
+        <br><br>
+        <div style="display:flex;gap:16px;justify-content:center;font-size:13px;color:#6a7b83;">
+            <span><strong style="color:#e9edef;">{{ unread_count|default:0 }}</strong> unread</span>
+            <span><strong style="color:#e9edef;">{{ contacts_count|default:0 }}</strong> contacts</span>
+            <span><strong style="color:#e9edef;">{{ groups_count|default:0 }}</strong> groups</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterChats() {
+    const input = document.getElementById('searchChats');
+    const filter = input.value.toLowerCase();
+    const items = document.querySelectorAll('.chat-item');
+    items.forEach(item => {
+        const name = item.querySelector('.chat-name').textContent.toLowerCase();
+        item.style.display = name.includes(filter) ? 'flex' : 'none';
+    });
+}
+</script>
+{% endblock %}
