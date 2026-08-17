@@ -37,6 +37,7 @@ urlpatterns = [
     path('groups/<int:group_id>/add-member/', views.add_group_member, name='add_group_member'),
     path('groups/<int:group_id>/leave/', views.leave_group, name='leave_group'),
     path('groups/<int:group_id>/transfer-admin/<int:user_id>/', views.transfer_admin, name='transfer_admin'),
+    path('send-voice-message/', send_voice_message_ajax, name='send_voice_message'),
     
     # Settings
     path('settings/', views.settings_view, name='settings'),
