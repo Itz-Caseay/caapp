@@ -1626,6 +1626,11 @@ def update_status_view(request):
     
     return JsonResponse({'success': True})
 
+import base64
+import uuid
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+
 @login_required(login_url='login')
 @require_POST
 def send_voice_message_ajax(request):
@@ -1660,7 +1665,6 @@ def send_voice_message_ajax(request):
     sender = request.user
     
     if receiver_id:
-        # Direct message
         receiver = get_object_or_404(User, id=receiver_id)
         message = Message.objects.create(
             sender=sender,
@@ -1669,7 +1673,6 @@ def send_voice_message_ajax(request):
             voice_file=file_path,
             voice_duration=int(voice_duration) if voice_duration else None
         )
-        
         return JsonResponse({
             'id': message.id,
             'type': 'voice',
@@ -1681,7 +1684,6 @@ def send_voice_message_ajax(request):
         })
     
     elif group_id:
-        # Group message
         group = get_object_or_404(Group, id=group_id)
         if not group.members.filter(id=sender.id).exists():
             return JsonResponse({'error': 'Not a member of this group'}, status=403)
@@ -1693,7 +1695,6 @@ def send_voice_message_ajax(request):
             voice_file=file_path,
             voice_duration=int(voice_duration) if voice_duration else None
         )
-        
         return JsonResponse({
             'id': message.id,
             'type': 'voice',
