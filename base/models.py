@@ -29,7 +29,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 class Message(models.Model):
-    """Chat message model with voice support"""
     MESSAGE_TYPES = (
         ('text', 'Text'),
         ('voice', 'Voice'),
@@ -47,20 +46,6 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['timestamp']
-        indexes = [
-            models.Index(fields=['sender', 'receiver', 'timestamp']),
-            models.Index(fields=['group', 'timestamp']),
-            models.Index(fields=['receiver', 'is_read']),
-        ]
-
-    def __str__(self):
-        if self.message_type == 'voice':
-            return f"{self.sender.username}: 🎤 Voice message ({self.voice_duration}s)"
-        return f"{self.sender.username}: {self.content[:30]}"
-
 class Group(models.Model):
     name = models.CharField(max_length=255)
     profile_pic = models.ImageField(upload_to='group_pics/', null=True, blank=True)
