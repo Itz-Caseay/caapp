@@ -1,240 +1,752 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat - BayaPlus</title>
-    <!-- ... styles ... -->
-    <style>
-        /* Prevent body scrolling when keyboard is open */
-        body {
-            height: 100%;
-            overflow: hidden;
+{% extends 'base.html' %}
+{% block title %}Chat with {{ other_user.fullname|default:other_user.username }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Voice message specific styles */
+    .voice-message-wa {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 180px;
+        padding: 4px 0;
+    }
+
+    .voice-message-wa .play-btn {
+        background: none;
+        border: none;
+        color: #00a884;
+        font-size: 22px;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+        flex-shrink: 0;
+    }
+
+    .voice-message-wa .play-btn:hover {
+        background: rgba(0, 168, 132, 0.1);
+    }
+
+    .voice-message-wa .play-btn.playing {
+        color: #53bdeb;
+    }
+
+    .voice-message-wa .waveform {
+        flex: 1;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        min-width: 60px;
+    }
+
+    .voice-message-wa .waveform .bar {
+        flex: 1;
+        height: 10px;
+        background: #6a7b83;
+        border-radius: 2px;
+        transition: height 0.2s;
+        height: var(--height, 10px);
+    }
+
+    .voice-message-wa .waveform .bar.active {
+        background: #00a884;
+    }
+
+    .voice-message-wa .duration {
+        font-size: 12px;
+        color: #6a7b83;
+        min-width: 35px;
+        text-align: center;
+    }
+
+    /* Recording animation */
+    .recording-pulse {
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    /* Voice preview */
+    .voice-preview-wa {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        background: #2a3942;
+        border-radius: 8px;
+        flex: 1;
+    }
+
+    .voice-preview-wa.active {
+        display: flex;
+    }
+
+    .voice-preview-wa .preview-icon {
+        color: #00a884;
+        font-size: 18px;
+    }
+
+    .voice-preview-wa .preview-progress {
+        flex: 1;
+        height: 4px;
+        background: #374045;
+        border-radius: 2px;
+        position: relative;
+    }
+
+    .voice-preview-wa .preview-progress .preview-fill {
+        height: 100%;
+        background: #00a884;
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.1s;
+    }
+
+    .voice-preview-wa .preview-time {
+        color: #aebac1;
+        font-size: 13px;
+        min-width: 35px;
+    }
+
+    .voice-preview-wa .preview-cancel {
+        background: none;
+        border: none;
+        color: #ff3b30;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 4px;
+    }
+
+    /* Message bubble adjustments for voice */
+    .message-wa .msg-time {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        font-size: 11px;
+        color: #6a7b83;
+        margin-top: 4px;
+    }
+
+    .message-wa .msg-time .read-status {
+        font-size: 14px;
+    }
+    .message-wa .msg-time .read-status.read {
+        color: #53bdeb;
+    }
+
+    /* Mobile keyboard fix - keep input visible */
+    .message-input-wa {
+        flex-shrink: 0;
+        background: #1f2c33;
+        border-top: 1px solid #2a3942;
+    }
+
+    /* Ensure the chat area doesn't overflow */
+    .chat-area {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .messages-container-wa {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+
+    /* For mobile, when input is focused, adjust */
+    @media (max-width: 768px) {
+        .chat-area {
+            height: 100dvh; /* dynamic viewport height */
         }
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh; /* For modern mobile browsers */
-            max-height: -webkit-fill-available;
+        .messages-container-wa {
+            padding-bottom: 4px;
+            max-height: calc(100dvh - 130px); /* adjust for header and input */
         }
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            padding-bottom: 80px; /* Space for input */
+        .message-input-wa input {
+            font-size: 16px; /* prevents iOS zoom */
         }
-        .chat-input-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #0f0f0f;
-            border-top: 1px solid #1a1a1a;
-            padding: 12px 16px;
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 50;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+    }
+
+    @media (max-width: 600px) {
+        .voice-message-wa {
+            min-width: 120px;
+            gap: 8px;
         }
-        .chat-input-area input {
-            flex: 1;
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
-            border-radius: 20px;
-            padding: 10px 16px;
-            color: white;
-            font-size: 16px; /* Prevents iOS zoom */
-            outline: none;
-        }
-        .chat-input-area input:focus {
-            border-color: #fbbf24;
-        }
-        .chat-input-area button {
-            background: #fbbf24;
-            color: black;
-            border: none;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
+        .voice-message-wa .play-btn {
+            width: 28px;
+            height: 28px;
             font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s;
-            flex-shrink: 0;
         }
-        .chat-input-area button:hover {
-            background: #f59e0b;
+        .voice-message-wa .waveform {
+            height: 24px;
         }
-        .chat-input-area button:active {
-            transform: scale(0.95);
+        .messages-container-wa {
+            max-height: calc(100dvh - 120px);
         }
-        
-        /* On mobile, adjust padding */
-        @media (max-width: 640px) {
-            .chat-input-area {
-                padding: 8px 12px;
-                padding-bottom: calc(8px + env(safe-area-inset-bottom));
-            }
-            .chat-input-area input {
-                font-size: 16px;
-                padding: 8px 14px;
-            }
-            .chat-input-area button {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <!-- Header -->
-        <header class="bg-[#0f0f0f] border-b border-[#1a1a1a] px-4 py-3 flex items-center gap-3 shrink-0">
-            <a href="{% url 'fanboard' %}" class="text-gray-400 hover:text-white">
-                <i class="fa-solid fa-arrow-left"></i>
-            </a>
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-red-950 flex items-center justify-center text-sm font-bold">
-                    {{ recipient.username|first|upper }}
-                </div>
-                <div>
-                    <h2 class="font-bold text-sm">{{ recipient.fullname|default:recipient.username }}</h2>
-                    <p class="text-xs text-gray-500">Online</p>
-                </div>
-            </div>
-        </header>
+    }
 
-        <!-- Messages -->
-        <div class="chat-messages" id="chatMessages">
-            <!-- Messages loop -->
-            {% for message in messages %}
-                <div class="flex {% if message.sender == user %}justify-end{% else %}justify-start{% endif %} mb-3">
-                    <div class="max-w-[75%] p-3 rounded-lg {% if message.sender == user %}bg-yellow-400 text-black{% else %}bg-[#1a1a1a] text-white{% endif %}">
-                        <p class="text-sm">{{ message.content }}</p>
-                        <p class="text-[10px] text-gray-500 mt-1">{{ message.created_at|time:"H:i" }}</p>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+    /* Prevent input from being hidden behind keyboard on mobile */
+    .message-input-wrapper {
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
 
-        <!-- Input Area -->
-        <div class="chat-input-area" id="chatInputArea">
-            <input type="text" id="messageInput" placeholder="Type a message..." 
-                   autocomplete="off" autocorrect="off" spellcheck="true"
-                   inputmode="text" enterkeyhint="send">
-            <button id="sendBtn">
-                <i class="fa-solid fa-paper-plane"></i>
+{% block content %}
+<!-- Sidebar (same as messages page) -->
+<div class="sidebar-wa hidden" id="sidebar">
+    <div class="sidebar-header">
+        <div class="brand"><span>CA²</span>pp</div>
+        <div class="header-actions">
+            <button onclick="window.location.href='{% url 'contacts' %}'" title="New chat">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button onclick="window.location.href='{% url 'settings' %}'" title="Settings">
+                <i class="fas fa-cog"></i>
             </button>
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // CHAT FUNCTIONALITY WITH KEYBOARD FIX
-        // ============================================
-        const input = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const messagesContainer = document.getElementById('chatMessages');
+    <div class="search-bar">
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchChats" placeholder="Search or start new chat" onkeyup="filterChats()">
+        </div>
+    </div>
 
-        // Focus input on load (for desktop)
-        // On mobile, focus only on tap
-        input.addEventListener('focus', function() {
-            // Scroll input into view
-            setTimeout(() => {
-                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
-        });
-
-        // Send message function
-        function sendMessage() {
-            const content = input.value.trim();
-            if (!content) return;
-
-            // Append message to UI (optimistic)
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'flex justify-end mb-3';
-            messageDiv.innerHTML = `
-                <div class="max-w-[75%] p-3 rounded-lg bg-yellow-400 text-black">
-                    <p class="text-sm">${content}</p>
-                    <p class="text-[10px] text-gray-700 mt-1">Just now</p>
+    <div class="chat-list" id="chatList">
+        {% for conv in conversations %}
+        <a href="{% url 'chat_detail' user_id=conv.contact.id %}" class="chat-item {% if conv.contact.id == other_user.id %}active{% endif %}">
+            <div class="chat-avatar">
+                {% if conv.profile_pic %}
+                    <img src="{{ conv.profile_pic }}" alt="{{ conv.contact.fullname }}">
+                {% else %}
+                    {{ conv.contact.get_avatar_initials }}
+                {% endif %}
+                {% if conv.is_online %}
+                    <div class="online-dot"></div>
+                {% endif %}
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">
+                    {{ conv.contact.fullname|default:conv.contact.username }}
+                    {% if conv.last_message %}
+                        <span class="time">{{ conv.last_message.timestamp|date:"H:i" }}</span>
+                    {% endif %}
                 </div>
-            `;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                <div class="chat-preview">
+                    {% if conv.last_message %}
+                        {% if conv.last_message.message_type == 'voice' %}
+                            <i class="fas fa-microphone" style="color:#00a884;margin-right:4px;"></i> Voice message
+                        {% else %}
+                            {{ conv.last_message.content|truncatechars:30 }}
+                        {% endif %}
+                    {% else %}
+                        No messages yet
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div style="text-align:center;padding:32px 16px;color:#6a7b83;">
+            <i class="fas fa-comments" style="font-size:32px;margin-bottom:12px;display:block;"></i>
+            <p>No conversations yet</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
-            // Clear input
-            input.value = '';
+<!-- Chat Area -->
+<div class="chat-area">
+    <!-- Chat Header -->
+    <div class="chat-header-wa">
+        <button class="back-btn" onclick="toggleSidebar()"><i class="fas fa-arrow-left"></i></button>
+        <div class="chat-avatar">
+            {% if other_profile and other_profile.profile_pic %}
+                <img src="{{ other_profile.profile_pic.url }}" alt="{{ other_user.fullname }}">
+            {% else %}
+                {{ other_user.get_avatar_initials }}
+            {% endif %}
+        </div>
+        <div class="header-info">
+            <div class="name">{{ other_user.fullname|default:other_user.username }}</div>
+            <div class="status">
+                {% if other_profile and other_profile.online_status %}Online{% else %}Last seen recently{% endif %}
+            </div>
+        </div>
+        <div class="header-actions">
+            <button onclick="window.location.href='{% url 'contacts' %}'" title="Contacts">
+                <i class="fas fa-users"></i>
+            </button>
+        </div>
+    </div>
 
-            // Send to server via AJAX
-            fetch('/bayaplus/chat/send/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCSRFToken(),
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    recipient_id: {{ recipient.id }},
-                    content: content
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update message time
-                }
-            })
-            .catch(error => console.error('Error sending message:', error));
+    <!-- Messages Container -->
+    <div class="messages-container-wa" id="messageContainer">
+        {% for msg in messages %}
+            <div class="message-wa {% if msg.sender == user %}sent{% else %}received{% endif %}" id="msg-{{ msg.id }}">
+                {% if msg.message_type == 'voice' %}
+                    <div class="voice-message-wa" data-message-id="{{ msg.id }}">
+                        <button class="play-btn" onclick="togglePlay(this, '{{ msg.voice_file.url }}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="waveform" id="waveform-{{ msg.id }}">
+                            {% for i in "123456789012345"|make_list %}
+                                <div class="bar" style="--height: {% widthratio i|add:1 2 15 %}px;"></div>
+                            {% endfor %}
+                        </div>
+                        <span class="duration">{{ msg.voice_duration }}s</span>
+                        <audio id="audio-{{ msg.id }}" src="{{ msg.voice_file.url }}" preload="metadata"></audio>
+                    </div>
+                {% else %}
+                    {{ msg.content }}
+                {% endif %}
+                <span class="msg-time">
+                    {{ msg.timestamp|date:"H:i" }}
+                    {% if msg.sender == user %}
+                        <span class="read-status {% if msg.is_read %}read{% endif %}">
+                            <i class="fas {% if msg.is_read %}fa-check-double{% else %}fa-check{% endif %}"></i>
+                        </span>
+                    {% endif %}
+                </span>
+            </div>
+        {% empty %}
+            <div style="text-align:center;padding:32px;color:#6a7b83;align-self:center;">
+                <i class="fas fa-comment" style="font-size:48px;margin-bottom:16px;display:block;color:#00a884;"></i>
+                <p style="font-size:15px;color:#e9edef;">No messages yet</p>
+                <p style="font-size:13px;">Say hello to {{ other_user.fullname|default:other_user.username }}!</p>
+            </div>
+        {% endfor %}
+    </div>
 
-            // Keep focus on input after send
-            input.focus();
+    <!-- Message Input -->
+    <div class="message-input-wrapper">
+        <div class="message-input-wa" id="messageInputWrapper">
+            <div class="input-actions">
+                <button id="recordBtn" title="Voice message">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button id="stopRecordBtn" title="Stop recording" style="display:none;color:#ff3b30;">
+                    <i class="fas fa-stop-circle"></i>
+                </button>
+            </div>
+
+            <div class="voice-preview-wa" id="voicePreview">
+                <span class="preview-icon"><i class="fas fa-microphone"></i></span>
+                <div class="preview-progress">
+                    <div class="preview-fill" id="recordingProgress"></div>
+                </div>
+                <span class="preview-time" id="recordDuration">0:00</span>
+                <button class="preview-cancel" id="cancelRecordBtn"><i class="fas fa-times"></i></button>
+            </div>
+
+            <input type="text" id="messageInput" placeholder="Type a message" autocomplete="off" autofocus>
+            <button class="send-btn" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle sidebar on mobile
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('hidden');
+}
+
+// Filter chats
+function filterChats() {
+    const input = document.getElementById('searchChats');
+    const filter = input.value.toLowerCase();
+    const items = document.querySelectorAll('.chat-item');
+    items.forEach(item => {
+        const name = item.querySelector('.chat-name').textContent.toLowerCase();
+        item.style.display = name.includes(filter) ? 'flex' : 'none';
+    });
+}
+
+// Auto-scroll to bottom
+const container = document.getElementById('messageContainer');
+function scrollToBottom() {
+    container.scrollTop = container.scrollHeight;
+}
+scrollToBottom();
+
+// ============================================
+// VOICE RECORDING (WhatsApp Style) - FULLY WORKING
+// ============================================
+const recordBtn = document.getElementById('recordBtn');
+const stopRecordBtn = document.getElementById('stopRecordBtn');
+const voicePreview = document.getElementById('voicePreview');
+const recordingProgress = document.getElementById('recordingProgress');
+const recordDuration = document.getElementById('recordDuration');
+const cancelRecordBtn = document.getElementById('cancelRecordBtn');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isRecording = false;
+
+// Send text message
+function sendTextMessage() {
+    const content = messageInput.value.trim();
+    if (!content) return;
+
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (response.ok) {
+            messageInput.value = '';
+            window.location.reload();
         }
+    })
+    .catch(error => console.error('Error sending message:', error));
+}
 
-        // Event listeners
-        sendBtn.addEventListener('click', sendMessage);
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendMessage();
+// Send voice message
+function sendVoiceMessage(base64Audio, duration) {
+    const formData = new FormData();
+    formData.append('voice_data', base64Audio);
+    formData.append('voice_duration', duration);
+    formData.append('receiver_id', '{{ other_user.id }}');
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url "send_voice_message" %}', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Failed to send voice message: ' + data.error);
+            return;
+        }
+        // Add voice message to chat immediately
+        addVoiceMessageToChat(data);
+        // Reload to show the message properly
+        setTimeout(() => window.location.reload(), 500);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to send voice message.');
+    });
+}
+
+function addVoiceMessageToChat(data) {
+    const container = document.getElementById('messageContainer');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message-wa sent';
+    msgDiv.id = `msg-${data.id}`;
+
+    // Generate random waveform bars
+    let bars = '';
+    for (let i = 0; i < 15; i++) {
+        const height = Math.floor(Math.random() * 20) + 5;
+        bars += `<div class="bar" style="--height: ${height}px;"></div>`;
+    }
+
+    msgDiv.innerHTML = `
+        <div class="voice-message-wa" data-message-id="${data.id}">
+            <button class="play-btn" onclick="togglePlay(this, '${data.file_url}')">
+                <i class="fas fa-play"></i>
+            </button>
+            <div class="waveform" id="waveform-${data.id}">
+                ${bars}
+            </div>
+            <span class="duration">${data.duration}s</span>
+            <audio id="audio-${data.id}" src="${data.file_url}" preload="metadata"></audio>
+        </div>
+        <span class="msg-time">
+            ${data.timestamp}
+            <span class="read-status"><i class="fas fa-check"></i></span>
+        </span>
+    `;
+
+    container.appendChild(msgDiv);
+    scrollToBottom();
+}
+
+// Voice recording
+recordBtn.addEventListener('click', startRecording);
+stopRecordBtn.addEventListener('click', stopRecording);
+cancelRecordBtn.addEventListener('click', cancelRecording);
+
+function startRecording() {
+    if (isRecording) return;
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            recordingSeconds = 0;
+            isRecording = true;
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const base64Audio = reader.result;
+                    sendVoiceMessage(base64Audio, recordingSeconds);
+                };
+                reader.readAsDataURL(audioBlob);
+
+                stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                recordBtn.style.display = 'flex';
+                stopRecordBtn.style.display = 'none';
+                voicePreview.classList.remove('active');
+                clearInterval(recordingTimer);
+            };
+
+            mediaRecorder.start();
+
+            // Update UI
+            recordBtn.style.display = 'none';
+            stopRecordBtn.style.display = 'flex';
+            voicePreview.classList.add('active');
+            recordingProgress.style.width = '0%';
+            recordDuration.textContent = '0:00';
+
+            // Start timer
+            recordingTimer = setInterval(() => {
+                recordingSeconds++;
+                const minutes = Math.floor(recordingSeconds / 60);
+                const seconds = recordingSeconds % 60;
+                recordDuration.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                const progress = Math.min((recordingSeconds / 60) * 100, 100);
+                recordingProgress.style.width = `${progress}%`;
+
+                if (recordingSeconds >= 60) {
+                    stopRecording();
+                }
+            }, 1000);
+        })
+        .catch(error => {
+            console.error('Error accessing microphone:', error);
+            alert('Unable to access microphone. Please allow microphone access.');
+            recordBtn.style.display = 'flex';
+            stopRecordBtn.style.display = 'none';
+        });
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+    }
+    clearInterval(recordingTimer);
+    isRecording = false;
+    recordBtn.style.display = 'flex';
+    stopRecordBtn.style.display = 'none';
+}
+
+function cancelRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+    }
+    clearInterval(recordingTimer);
+    isRecording = false;
+    audioChunks = [];
+    recordBtn.style.display = 'flex';
+    stopRecordBtn.style.display = 'none';
+    voicePreview.classList.remove('active');
+}
+
+// Voice player (FIXED)
+function togglePlay(button, audioUrl) {
+    const player = button.closest('.voice-message-wa');
+    const audio = player.querySelector('audio');
+    const waveform = player.querySelector('.waveform');
+    const bars = waveform.querySelectorAll('.bar');
+
+    // Set audio source if missing
+    if (!audio.src || audio.src === '') {
+        audio.src = audioUrl;
+        audio.load();
+    }
+
+    if (audio.paused) {
+        // Pause any other playing audio
+        document.querySelectorAll('.voice-message-wa audio').forEach(a => {
+            if (a !== audio && !a.paused) {
+                a.pause();
+                const otherBtn = a.closest('.voice-message-wa').querySelector('.play-btn');
+                if (otherBtn) otherBtn.innerHTML = '<i class="fas fa-play"></i>';
             }
         });
 
-        // Function to get CSRF token
-        function getCSRFToken() {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let cookie of cookies) {
-                    const trimmed = cookie.trim();
-                    if (trimmed.startsWith('csrftoken=')) {
-                        cookieValue = decodeURIComponent(trimmed.substring(10));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
+        // Remove previous listeners to avoid duplicates
+        audio.removeEventListener('timeupdate', handleTimeUpdate);
+        audio.removeEventListener('ended', handleEnded);
 
-        // Scroll to bottom on load
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        // On mobile, ensure input is not hidden by keyboard
-        // Use VisualViewport API to adjust
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', function() {
-                const inputArea = document.getElementById('chatInputArea');
-                if (window.visualViewport.height < window.innerHeight) {
-                    // Keyboard open
-                    inputArea.style.position = 'sticky';
-                    inputArea.style.bottom = '0';
-                } else {
-                    // Keyboard closed
-                    inputArea.style.position = 'fixed';
-                    inputArea.style.bottom = '0';
-                }
+        function handleTimeUpdate() {
+            const percent = (this.currentTime / this.duration) * 100;
+            bars.forEach((bar, index) => {
+                const height = Math.sin((index / bars.length) * Math.PI * 2 + percent * 0.5) * 15 + 15;
+                bar.style.height = `${height}px`;
+                bar.classList.add('active');
             });
         }
-    </script>
-</body>
-</html>
+
+        function handleEnded() {
+            button.innerHTML = '<i class="fas fa-play"></i>';
+            button.classList.remove('playing');
+            bars.forEach(bar => {
+                bar.style.height = '10px';
+                bar.classList.remove('active');
+            });
+        }
+
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('ended', handleEnded);
+
+        audio.play().then(() => {
+            button.innerHTML = '<i class="fas fa-pause"></i>';
+            button.classList.add('playing');
+        }).catch(error => {
+            console.error('Playback failed:', error);
+            alert('Unable to play audio. Please try again.');
+        });
+    } else {
+        audio.pause();
+        button.innerHTML = '<i class="fas fa-play"></i>';
+        button.classList.remove('playing');
+    }
+}
+
+// Send on Enter
+messageInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendTextMessage();
+    }
+});
+
+sendBtn.addEventListener('click', sendTextMessage);
+
+// ============================================
+// REAL-TIME MESSAGE POLLING (for new messages)
+// ============================================
+let lastMessageId = {{ messages.last.id|default:0 }};
+let isPolling = false;
+
+function pollNewMessages() {
+    if (isPolling) return;
+    isPolling = true;
+
+    fetch('{% url "get_new_messages" %}?last_id=' + lastMessageId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    if (msg.sender_id == {{ other_user.id }} && msg.type == 'direct') {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'message-wa received';
+                        msgDiv.id = `msg-${msg.id}`;
+
+                        if (msg.content.type === 'voice') {
+                            // Generate random waveform bars
+                            let bars = '';
+                            for (let i = 0; i < 15; i++) {
+                                const height = Math.floor(Math.random() * 20) + 5;
+                                bars += `<div class="bar" style="--height: ${height}px;"></div>`;
+                            }
+
+                            msgDiv.innerHTML = `
+                                <div class="voice-message-wa" data-message-id="${msg.id}">
+                                    <button class="play-btn" onclick="togglePlay(this, '${msg.content.file_url}')">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="waveform" id="waveform-${msg.id}">
+                                        ${bars}
+                                    </div>
+                                    <span class="duration">${msg.content.duration}s</span>
+                                    <audio id="audio-${msg.id}" src="${msg.content.file_url}" preload="metadata"></audio>
+                                </div>
+                                <span class="msg-time">${msg.timestamp}</span>
+                            `;
+                        } else {
+                            msgDiv.innerHTML = `
+                                ${msg.content.content}
+                                <span class="msg-time">${msg.timestamp}</span>
+                            `;
+                        }
+
+                        container.appendChild(msgDiv);
+                        lastMessageId = msg.id;
+                    }
+                });
+                scrollToBottom();
+            }
+            isPolling = false;
+        })
+        .catch(error => {
+            console.error('Error polling messages:', error);
+            isPolling = false;
+        });
+}
+
+// Poll every 3 seconds
+const pollInterval = setInterval(pollNewMessages, 3000);
+
+// Stop polling when leaving page
+window.addEventListener('beforeunload', function() {
+    clearInterval(pollInterval);
+});
+
+// ============================================
+// MOBILE KEYBOARD FIX
+// ============================================
+// On mobile, when input is focused, scroll to it after keyboard shows
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    // Mobile device
+    messageInput.addEventListener('focus', function() {
+        // Delay to wait for keyboard to appear
+        setTimeout(() => {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    });
+}
+
+// Also ensure input gets focus on tap on the whole input area
+document.getElementById('messageInputWrapper').addEventListener('click', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+        messageInput.focus();
+    }
+});
+
+// Prevents zoom on input focus on iOS
+if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+    messageInput.style.fontSize = '16px';
+}
+</script>
+{% endblock %}
